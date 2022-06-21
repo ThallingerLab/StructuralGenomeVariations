@@ -23,10 +23,5 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y art-nextgen-simulation-tools
 RUN apt update && apt install -y ncbi-blast+
 
-ADD bedmaker/bed_maker_6_1.py /scripts/
-ADD bedmaker/bed_maker_supplementary.py /scripts/
-ADD Data_analysis/main_20210301.py /scripts/
-ADD scripts/* /scripts/
-ADD data/* /data/
-
+ADD *.py /scripts/
 

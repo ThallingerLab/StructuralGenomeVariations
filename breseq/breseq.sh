@@ -6,7 +6,10 @@ fastq2="$4"
 stamp="$5"
 output="$6"
 cd ..
-docker run --name=breseq -v $(pwd)/:/in/ -w /in/ pvstodghill/breseq:0.32.0__2018-03-15 breseq -o "$output"/breseq/breseq_output_"$stamp" -r "$fasta".fasta "$fastq1".fastq "$fastq2".fastq
+
+# Think about using bwa BAM files, running bowtie on all files will take forever, especially with so many settings ?!
+
+docker run --name=breseq -v $(pwd)/:/in/ -w /in/ pvstodghill/breseq:0.35.7__2021-08-03 breseq -o "$output"/breseq/breseq_output_"$stamp" -r "$fasta".fasta "$fastq1".fastq "$fastq2".fastq
 
 START=$(docker inspect --format='{{.State.StartedAt}}' breseq)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' breseq)

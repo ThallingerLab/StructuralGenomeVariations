@@ -35,9 +35,9 @@ options_dict = {
     "tdu": "tandem duplication",
     "itd": "inverted tandem duplication",
     "tcp": "translocation copy-paste",
-    "tci": "translocation copy-paste",
+    "tci": "inverted translocation copy-paste",
     "txp": "translocation cut-paste",
-    "txi": "translocation cut-paste",
+    "txi": "inverted translocation cut-paste",
     "inv": "inversion",
     "chr": "chromosomal rearrangement"
 }

@@ -9,7 +9,7 @@ stamp="$5"
 output="$6"
 
 cd ..
-docker run --name=manta1 -v $(pwd):/in/ -w /in/ kfdrc/manta  ../manta-1.4.0.centos6_x86_64/bin/configManta.py --bam="$bam".bam --referenceFasta="$fasta".fasta --runDir="$output"/manta/output_"$stamp"
+docker run --name=manta1 -v $(pwd):/in/ -w /in/ kfdrc/manta:1.6.0  ../manta-1.6.0.centos6_x86_64/bin/configManta.py --bam="$bam".bam --referenceFasta="$fasta".fasta --runDir="$output"/manta/output_"$stamp"
 
 
 START=$(docker inspect --format='{{.State.StartedAt}}' manta1)
