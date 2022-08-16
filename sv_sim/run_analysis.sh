@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:"
+OPTSTRING="hr:s:i:o:t:"
 
 usage()
 {
@@ -27,7 +27,11 @@ while getopts "$OPTSTRING" SWITCH; do
 		;;
 
     o) out_dir="$OPTARG"
-		echo "Outdir = out_dir"
+		echo "Outdir = $out_dir"
+		;;
+
+    t) tools_dir="$OPTARG"
+		echo "Tools directory = $tools_dir"
 		;;
 
 		*) echo "script error: unhandled argument"
@@ -39,7 +43,7 @@ while getopts "$OPTSTRING" SWITCH; do
 	esac
 done
 
-source log_eval.sh
+source $tools_dir/log_eval.sh
 
 ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_illumina"
 SAMBAMBA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
@@ -151,7 +155,7 @@ do
           mkdir "$tool_outdir"
         fi
 
-        log_eval $PWD "$tool/${tool}.sh" "$BAM_SORTED" "$ref" "$READ1_FILE" "$READ2_FILE" "$tool_outdir"
+        log_eval $PWD "$tools_dir/$tool/${tool}.sh" "$BAM_SORTED" "$ref" "$READ1_FILE" "$READ2_FILE" "$tool_outdir"
 
       done
     fi
