@@ -44,6 +44,10 @@ ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_il
 SAMBAMBA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 BWA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
 
+#declare -a scripts=("bdmax" "delly" "gridss" "lumpy" "manta" "softsv" "breseq")
+
+declare -a tools=("gridss")
+
 fractionOfReads=(25 50 75)
 seed=87
 
@@ -55,14 +59,20 @@ if [ ! -d $out_dir/fastq ]; then
 	mkdir $out_dir/fastq
 fi
 
+if [ ! -d $out_dir/svs ]; then
+	mkdir $out_dir/svs
+fi
 
 grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
+
+stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
 
 do
   bamdir=bam/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
   fastqdir=fastq/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
+  svsdir=svs/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
 
-  echo "THIS IS the DIRECTORY:  cur_outdir"
+  echo "THIS IS the DIRECTORY: $bamdir"
 
   if [ ! -d $bamdir ]; then
     mkdir $bamdir
@@ -70,6 +80,10 @@ do
 
   if [ ! -d $fastqdir ]; then
     mkdir $fastqdir
+  fi
+
+  if [ ! -d $svsdir ]; then
+    mkdir $svsdir
   fi
 
   for dir in "$base_dir"/*; do
@@ -82,15 +96,22 @@ do
       SAM="${bamdir}/${base}.sam"
       BAM_SORTED="${bamdir}/${base}.sorted.bam"
 
+      echo "╔══════════════════════════════════════════════════════════════╗"
+      echo "║                   running read generation                    ║"
+      echo "╚══════════════════════════════════════════════════════════════╝"
+
       if [ ! -s "$READ1_FILE" ]; then
 
         log_eval $PWD "$ART -ss ${settings_array[0]} -i ${dir}/h1.fa -p -na -f ${settings_array[1]} -l ${settings_array[2]} -m ${settings_array[3]} -s ${settings_array[4]} -o ${fastqdir}/${base}_"
 
         if [ -s "${fastqdir}/${base}_1.fq" -a -s "${fastqdir}/${base}_2.fq" ]; then
           gzip "${fastqdir}/${base}_1.fq" "${fastqdir}/${base}_2.fq"
-
         fi
       fi
+
+      echo "╔══════════════════════════════════════════════════════════════╗"
+      echo "║                      running read mapping                    ║"
+      echo "╚══════════════════════════════════════════════════════════════╝"
 
       if [ ! -s "$BAM_SORTED" ]; then
 
@@ -107,13 +128,31 @@ do
       if [ ! -s "${BAM_SORTED/.bam/-75.bam}" ]; then
 
         if [ -s "$BAM_SORTED" ]; then
-            echo "yes"
-             for fraction in ${fractionOfReads[@]}; do
-                    log_eval $PWD "$SAMBAMBA sambamba view -h -t 32 -s 0.$fraction -f bam --subsampling-seed=$seed -o ${BAM_SORTED/.bam/-${fraction}.bam} $BAM_SORTED"
-             done
+          for fraction in ${fractionOfReads[@]}; do
+            log_eval $PWD "$SAMBAMBA sambamba view -h -t 32 -s 0.$fraction -f bam --subsampling-seed=$seed -o ${BAM_SORTED/.bam/-${fraction}.bam} $BAM_SORTED"
+          done
         fi
 
       fi
+
+      echo "╔══════════════════════════════════════════════════════════════╗"
+      echo "║                      starting SV analysis                    ║"
+      echo "╚══════════════════════════════════════════════════════════════╝"
+
+      if [ ! -d $svsdir/$base ]; then
+        mkdir $svsdir/$base
+      fi
+
+      for tool in "${tools[@]}"
+      do
+        tool_outdir="$svsdir/$base/$tool"
+        if [ ! -d "$tool_outdir" ]; then
+          mkdir "$tool_outdir"
+        fi
+
+        log_eval $PWD "$tool/${tool}.sh "$BAM_SORTED" "$ref" "$READ1_FILE" "$READ2_FILE" "$tool_outdir"
+
+      done
     fi
   done
 done

@@ -1,13 +1,14 @@
-#!/bin/bash 
-stamp="$5"
+#!/bin/bash
+
 bam="$1"
 fasta="$2"
 fastq1="$3"
 fastq2="$4"
-output="$6"
+outdir="$5"
+
 cd ..
 mkdir "$output"/gridss/gridss_out_"$stamp"
-docker run --name=gridss -v $(pwd)/:/in/ -w /in/ gridss/gridss:2.13.2 OUTPUT="$output"/gridss/gridss_out_"$stamp"/output_file_"$stamp".vcf INPUT="$bam".bam REFERENCE_SEQUENCE="$fasta".fasta ASSEMBLY="$output"/gridss/gridss_out_"$stamp"/output_file_"$stamp".bam
+docker run --name=gridss -v $(pwd)/:/in/ -w /in/ gridss/gridss:2.13.2 OUTPUT="${outdir}/svs.vcf" INPUT="$bam" REFERENCE_SEQUENCE="$fasta" ASSEMBLY="${outdir}/assembly.bam"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' gridss)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' gridss)
