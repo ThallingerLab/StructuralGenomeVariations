@@ -150,7 +150,7 @@ do
           mkdir "$tool_outdir"
         fi
 
-        log_eval $PWD "$tool/${tool}.sh "$BAM_SORTED" "$ref" "$READ1_FILE" "$READ2_FILE" "$tool_outdir"
+        log_eval $PWD "$tool/${tool}.sh" "$BAM_SORTED" "$ref" "$READ1_FILE" "$READ2_FILE" "$tool_outdir"
 
       done
     fi
