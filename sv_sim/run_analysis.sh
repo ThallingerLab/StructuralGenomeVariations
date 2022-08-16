@@ -7,6 +7,7 @@ usage()
 	echo -e  "You did it wrong"
 }
 
+
 declare SWITCH
 
 # Examine individual options
