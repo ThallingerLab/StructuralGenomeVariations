@@ -45,7 +45,8 @@ done
 
 source $tools_dir/log_eval.sh
 
-ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_illumina"
+#ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_illumina"
+ART="art_illumina"
 SAMBAMBA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 BWA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
 
