@@ -73,9 +73,9 @@ grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
 
 do
-  bamdir=bam/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
-  fastqdir=fastq/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
-  svsdir=svs/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
+  bamdir=$out_dir/bam/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
+  fastqdir=$out_dir/fastq/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
+  svsdir=$out_dir/svs/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
 
   echo "THIS IS the DIRECTORY: $bamdir"
 
@@ -102,7 +102,7 @@ do
       BAM_SORTED="${bamdir}/${base}.sorted.bam"
 
       echo "╔══════════════════════════════════════════════════════════════╗"
-      echo "║                   running read generation                    ║"
+      echo "║                   running read generation   ${READ1_FILE}    ║"
       echo "╚══════════════════════════════════════════════════════════════╝"
 
       if [ ! -s "$READ1_FILE" ]; then
