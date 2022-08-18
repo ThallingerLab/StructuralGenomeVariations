@@ -47,6 +47,7 @@ source $tools_dir/log_eval.sh
 
 #ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_illumina"
 ART="art_illumina"
+#ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vronie/art:v2.5.8 /root/art_bin_MountRainier/art_illumina
 SAMBAMBA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 BWA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
 
@@ -72,6 +73,7 @@ fi
 grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
+org="CBS7435"
 
 do
   bamdir=$out_dir/bam/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
@@ -121,7 +123,7 @@ do
 
       if [ ! -s "$BAM_SORTED" ]; then
 
-        log_eval $PWD  "$BWA mem -a -M -R '@RG\tID:${org}\tSM:${seq}\tPL:ILLUMINA\tLB:lib' $ref $READ1_FILE $READ2_FILE > $SAM"
+        log_eval $PWD  "$BWA mem -a -M -R '@RG\tID:${org}\tSM:${base}\tPL:ILLUMINA\tLB:lib' $ref $READ1_FILE $READ2_FILE > $SAM"
         log_eval $PWD  "$SAMBAMBA sambamba view -h -t 32 -f bam -S -o ${SAM/.sam/.bam} $SAM"
         log_eval $PWD  "$SAMBAMBA sambamba sort -t 32 -o $BAM_SORTED ${SAM/.sam/.bam}"
         log_eval $PWD  "$SAMBAMBA sambamba index -t 32 $BAM_SORTED"

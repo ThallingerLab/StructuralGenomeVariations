@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source ../log_eval.sh
+
 bam="$1"
 fasta="$2"
 fastq1="$3"
@@ -8,7 +10,11 @@ outdir="$5"
 
 cd ..
 mkdir "$output"/gridss/gridss_out_"$stamp"
-docker run --name=gridss -v $(pwd)/:/in/ -w /in/ gridss/gridss:2.13.2 OUTPUT="${outdir}/svs.vcf" INPUT="$bam" REFERENCE_SEQUENCE="$fasta" ASSEMBLY="${outdir}/assembly.bam"
+log_eval $PWD "docker run  --name=gridss -v $(pwd):$(pwd) -w $(pwd) gridss/gridss:2.13.2 gridss \
+ --reference $fasta \
+ --output ${outdir}/svs.vcf \
+ --assembly ${outdir}/assembly.bam \
+ $bam"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' gridss)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' gridss)
