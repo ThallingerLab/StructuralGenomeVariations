@@ -158,6 +158,7 @@ do
           mkdir "$tool_outdir"
         fi
 
+        export -f log_eval
         log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_SORTED $ref $READ1_FILE $READ2_FILE $tool_outdir"
 
       done
