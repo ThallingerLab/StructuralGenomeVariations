@@ -1,20 +1,21 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:"
+OPTSTRING="hr:s:i:o:t:c:"
 
 usage()
 {
 	echo -e  "You did it wrong"
 }
 
-
 declare SWITCH
+threads=8
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do
 	case $SWITCH in
 
 		r) ref="$OPTARG"
+		ref=$(readlink -e "$ref")
 		echo "Reference = $ref"
 		;;
 
@@ -23,15 +24,22 @@ while getopts "$OPTSTRING" SWITCH; do
 		;;
 
     i) base_dir="$OPTARG"
+    base_dir=$(readlink -e "$base_dir")
 		echo "Basedir = $base_dir"
 		;;
 
     o) out_dir="$OPTARG"
+    out_dir=$(readlink -e "$out_dir")
 		echo "Outdir = $out_dir"
 		;;
 
     t) tools_dir="$OPTARG"
+    tools_dir=$(readlink -e "$tools_dir")
 		echo "Tools directory = $tools_dir"
+		;;
+
+    c) threads="$OPTARG"
+		echo "Threads = $threads"
 		;;
 
 		*) echo "script error: unhandled argument"
@@ -46,16 +54,15 @@ done
 source $tools_dir/log_eval.sh
 
 #ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vlr37/art_illumina art_illumina"
-ART="art_illumina"
-#ART="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD vronie/art:v2.5.8 /root/art_bin_MountRainier/art_illumina
-SAMBAMBA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
-BWA="docker run -u 1001:1001 --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
+#ART="art_illumina"
+ART="docker run -u 1001:1001 --name art --rm -v $PWD:$PWD -w $PWD vrohnie/art:v2.5.8 /home/art_bin_MountRainier/art_illumina"
+SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
+BWA="docker run -u 1001:1001 --name bwa --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
 
 #declare -a scripts=("bdmax" "delly" "gridss" "lumpy" "manta" "softsv" "breseq")
 
-declare -a tools=("gridss")
-
-fractionOfReads=(25 50 75)
+declare -a tools=("gridss" "manta" "lumpy" "delly" "bdmax" "softsv" "breseq")
+declare -a fractionOfReads=(25 50 75)
 seed=87
 
 if [ ! -d $out_dir/bam ]; then
@@ -70,15 +77,16 @@ if [ ! -d $out_dir/svs ]; then
 	mkdir $out_dir/svs
 fi
 
-grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
 org="CBS7435"
 
+grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 do
-  bamdir=$out_dir/bam/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
-  fastqdir=$out_dir/fastq/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
-  svsdir=$out_dir/svs/${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}
+  settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
+  bamdir=$out_dir/bam/$settings_string
+  fastqdir=$out_dir/fastq/$settings_string
+  svsdir=$out_dir/svs/$settings_string
 
   echo "THIS IS the DIRECTORY: $bamdir"
 
@@ -105,7 +113,7 @@ do
       BAM_SORTED="${bamdir}/${base}.sorted.bam"
 
       echo "╔══════════════════════════════════════════════════════════════╗"
-      echo "║                   running read generation   ${READ1_FILE}    ║"
+      echo "║                   running read generation                    ║"
       echo "╚══════════════════════════════════════════════════════════════╝"
 
       if [ ! -s "$READ1_FILE" ]; then
@@ -123,45 +131,13 @@ do
 
       if [ ! -s "$BAM_SORTED" ]; then
 
-        log_eval $PWD  "$BWA mem -a -M -R '@RG\tID:${org}\tSM:${base}\tPL:ILLUMINA\tLB:lib' $ref $READ1_FILE $READ2_FILE > $SAM"
-        log_eval $PWD  "$SAMBAMBA sambamba view -h -t 32 -f bam -S -o ${SAM/.sam/.bam} $SAM"
-        log_eval $PWD  "$SAMBAMBA sambamba sort -t 32 -o $BAM_SORTED ${SAM/.sam/.bam}"
-        log_eval $PWD  "$SAMBAMBA sambamba index -t 32 $BAM_SORTED"
+        log_eval $PWD  "$BWA mem -a -M -R '@RG\tID:${org}\tSM:${base/-/}\tPL:ILLUMINA\tLB:lib' $ref $READ1_FILE $READ2_FILE > $SAM"
+        log_eval $PWD  "$SAMBAMBA sambamba view -h -t $threads -f bam -S -o ${SAM/.sam/.bam} $SAM"
+        log_eval $PWD  "$SAMBAMBA sambamba sort -t $threads -o $BAM_SORTED ${SAM/.sam/.bam}"
+        log_eval $PWD  "$SAMBAMBA sambamba index -t $threads $BAM_SORTED"
 
         rm $SAM ${SAM/.sam/.bam}
-
-        # BAM=${run}.dups_rem.bam
       fi
-
-      if [ ! -s "${BAM_SORTED/.bam/-75.bam}" ]; then
-
-        if [ -s "$BAM_SORTED" ]; then
-          for fraction in ${fractionOfReads[@]}; do
-            log_eval $PWD "$SAMBAMBA sambamba view -h -t 32 -s 0.$fraction -f bam --subsampling-seed=$seed -o ${BAM_SORTED/.bam/-${fraction}.bam} $BAM_SORTED"
-          done
-        fi
-
-      fi
-
-      echo "╔══════════════════════════════════════════════════════════════╗"
-      echo "║                      starting SV analysis                    ║"
-      echo "╚══════════════════════════════════════════════════════════════╝"
-
-      if [ ! -d $svsdir/$base ]; then
-        mkdir $svsdir/$base
-      fi
-
-      for tool in "${tools[@]}"
-      do
-        tool_outdir="$svsdir/$base/$tool"
-        if [ ! -d "$tool_outdir" ]; then
-          mkdir "$tool_outdir"
-        fi
-
-        export -f log_eval
-        log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_SORTED $ref $READ1_FILE $READ2_FILE $tool_outdir"
-
-      done
     fi
   done
 done

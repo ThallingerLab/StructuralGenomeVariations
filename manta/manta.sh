@@ -1,16 +1,19 @@
 # Usage: manta.sh <bamfile> <reference fasta> <output directory> <number of available cores>
 #
+
+threads=8
+
 bam="$1"
 fasta="$2"
 fastq1="$3"
 fastq2="$4"
-cores=1
-stamp="$5"
-output="$6"
+outdir="$5"
+threads="$6"
 
-cd ..
-docker run --name=manta1 -v $(pwd):/in/ -w /in/ kfdrc/manta:1.6.0  ../manta-1.6.0.centos6_x86_64/bin/configManta.py --bam="$bam".bam --referenceFasta="$fasta".fasta --runDir="$output"/manta/output_"$stamp"
-
+log_eval $PWD "docker run --name=manta1 -v $(pwd):$(pwd) -w $outdir kfdrc/manta:1.6.0 /manta-1.6.0.centos6_x86_64/bin/configManta.py \
+  --bam=$bam \
+  --referenceFasta=$fasta \
+  --runDir=$outdir"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' manta1)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' manta1)
@@ -25,7 +28,8 @@ echo first time: $TIME1 seconds
 docker container rm manta1
 
 
-docker run --name=manta2 -v $(pwd):/in/ -w /in/ kfdrc/manta python "$output"/manta/output_"$stamp"/runWorkflow.py -m local -j $cores
+log_eval $PWD "docker run --name=manta2 -v $(pwd):$(pwd) -w $(pwd) kfdrc/manta:1.6.0 python $outdir/runWorkflow.py \
+  -m local -j $threads"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' manta2)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' manta2)
@@ -41,4 +45,4 @@ docker container rm manta2
 
 FTIME=$(($TIME1+$TIME2))
 
-echo final time: $FTIME seconds 2>&1 | tee "$output"/manta/manta_runtime_"$stamp".txt
+echo final time: $FTIME seconds 2>&1 | tee "$outdir"/manta_runtime.txt
