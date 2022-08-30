@@ -7,9 +7,8 @@ outdir="$5"
 threads="$6"
 
 log_eval $PWD "docker run --name=delly -v $(pwd)/:$(pwd) -w $outdir dellytools/delly delly call \
-  -o $outdir/delly.vcf \
   -g $fasta \
-  $bam"
+  $bam > $outdir/delly.vcf"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' delly)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly)

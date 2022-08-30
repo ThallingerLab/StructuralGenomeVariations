@@ -13,20 +13,6 @@ fastq2="$4"
 outdir="$5"
 threads="$6"
 
-#if [[ $1 == *"BSY11"* ]]
-#then
-#	c=2
-#else
-#	c=3
-#fi
-
-#if [[ $1 == *"BSY11_red"* ]]
-#then
-#    conf="BSY11_red_config"
-#else
-#    docker run --name=bdmax1 -v $(pwd):$(pwd) -w $outdir molecular/breakdancer perl /home/bio/breakdancer-1.4.5/perl/bam2cfg.pl -c "$c" "$bamfile".bam > ./bdmax/bdmaxconfig
-#fi
-
 log_eval $PWD "docker run --name=bdmax1 -v $(pwd):$(pwd) -w $outdir vrohnie/bdmax:v1.4.5 perl \
   /root/breakdancer-1.4.5/perl/bam2cfg.pl \
   $bam > $outdir/bdmaxconfig"
