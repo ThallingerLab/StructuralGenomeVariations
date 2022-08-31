@@ -12,7 +12,7 @@ threads="$6"
 #docker run --name=lumpy -v $(pwd)/:/in/ -w /in/ szarate/lumpy-sv:v0.3.0 lumpyexpress -B "$1".bam -S "$1".splitters.bam -D "$1".discordants.bam -o "$output"/lumpy/lumpyoutput_"$stamp".vcf
 
 ## It is advised to call lumpy via smoove
-log_eval $PWD "docker run --name=lumpy -v $(pwd):$(pwd) -w $(pwd) brentp/smoove:v0.2.7 smoove call \
+log_eval $PWD "docker run --name=lumpy -v $(pwd):$(pwd) -w $outdir brentp/smoove:v0.2.7 smoove call \
 --fasta $fasta \
 --name $(basename $outdir) \
 --genotype \

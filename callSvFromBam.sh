@@ -55,7 +55,8 @@ source $tools_dir/log_eval.sh
 
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 
-declare -a tools=("gridss" "manta" "lumpy" "delly" "bdmax" "softsv")
+#declare -a tools=("wham" "svaba" "pindel" "bdmax" "softsv" "manta" "lumpy" "delly" "gridss")
+declare -a tools=("bdmax" "softsv")
 declare -a fractionOfReads=(25 50 75 100)
 seed=87
 

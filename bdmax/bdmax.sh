@@ -33,8 +33,8 @@ docker container rm bdmax1
 log_eval $PWD "docker run --name=bdmax2 -v $(pwd):$(pwd) -w $outdir vrohnie/bdmax:v1.4.5 breakdancer-max \
   $outdir/bdmaxconfig > $outdir/bdmax.tsv"
 
-log_eval $PWD "docker run --rm --name=python3.8 -v $(pwd):$(pwd) -w $outdir python:3.8-buster python3 $tools_dir/bdmax/bdmaxToVCF.py \
-  -i $outdir -r $fasta -c LT962478.1:2263458 LT962479.1:1827941"
+log_eval $PWD "docker run --rm --name=python3.8 -v $(pwd):$(pwd) -v $tools_dir:$tools_dir -w $outdir python:3.8-buster python3 $tools_dir/bdmax/bdmaxToVCF.py \
+  -i $outdir/bdmax.tsv -r $fasta -c LT962478.1:2263458 LT962479.1:1827941"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' bdmax2)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' bdmax2)

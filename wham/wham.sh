@@ -9,9 +9,10 @@ fastq2="$4"
 outdir="$5"
 threads="$6"
 
-log_eval $PWD "docker run --name=wham -v $(pwd):$(pwd) -w $(pwd) gatksv/wham:8645aa whamg \
--a $bam \
-2> $outdir/wham.err > $outdir/wham.vcf"
+log_eval $PWD "docker run --name=wham -v $(pwd):$(pwd) -w $outdir gatksv/wham:8645aa whamg \
+-a $fasta \
+-f $bam \
+> $outdir/wham.vcf 2> $outdir/wham.err"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' wham)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' wham)
