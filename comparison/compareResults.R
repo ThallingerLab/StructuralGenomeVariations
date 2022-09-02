@@ -10,6 +10,19 @@ library(seqinr)
 library(VariantAnnotation)
 library(StructuralVariantAnnotation)
 
+loadTruthGR <- function(bed_folder){
+  truth_files <- list.files(bed_folder, recursive = T, pattern = "*_summary.bed")
+  
+  TruthSet <- list()
+  
+  for(file in truth_files){
+   base <- unlist(strsplit(file, "/"))[1]
+   
+  }
+  
+  
+}
+
 dir = "/Data/Analyses/2022/202205_SV-SIM/accuracy_testing/"
 setwd(dir)
 
@@ -17,7 +30,8 @@ delly_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/delly_50/delly.vcf")
 delly_gr <- breakpointRanges(delly_vcf)
 
 gridss_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/gridss_50/svs.vcf")
-gridss_gr <- breakpointRanges(gridss_vcf)
+gridss_gr <- c(breakpointRanges(gridss_vcf), breakendRanges(gridss_vcf))
+
 
 manta_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/manta_50/results/variants/candidateSV.vcf.gz")
 manta_gr <- breakpointRanges(manta_vcf)
@@ -27,6 +41,7 @@ lumpy_gr <- breakpointRanges(lumpy_vcf)
 
 softsv_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/softsv_50/svsoft_parsed.vcf")
 softsv_gr <- breakpointRanges(softsv_vcf)
+
 
 manta_gr@elementMetadata
 

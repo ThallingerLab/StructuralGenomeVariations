@@ -28,7 +28,7 @@ options_ind_dict = {
 }
 
 options_dict = {
-    "sub": "substitution insertion",
+    "sub": "substitution",
     "tcs": "substitution translocation",
     "ins": "insertion",
     "del": "deletion",
