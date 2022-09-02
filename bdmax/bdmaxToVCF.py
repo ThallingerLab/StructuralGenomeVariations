@@ -40,13 +40,13 @@ vcf_file.write("##ALT=<ID=INS,Description=\"Insertion\">\n")
 vcf_file.write("##FILTER=<ID=PASS,Description=\"All filters passed\">\n")
 
 vcf_file.write(
-    "##INFO=<ID=CHR2,Number=1,sv_type=String,Description=\"Chromosome for POS2 coordinate in case of an inter-chromosomal translocation\">\n")
+    "##INFO=<ID=CHR2,Number=1,Type=String,Description=\"Chromosome for POS2 coordinate in case of an inter-chromosomal translocation\">\n")
 vcf_file.write(
-    "##INFO=<ID=POS2,Number=1,sv_type=Integer,Description=\"Genomic position for CHR2 in case of an inter-chromosomal translocation\">\n")
-vcf_file.write("##INFO=<ID=END,Number=1,sv_type=Integer,Description=\"End position of the structural variant\">\n")
-vcf_file.write("##INFO=<ID=PE,Number=1,sv_type=Integer,Description=\"Paired-end support of the structural variant\">\n")
-vcf_file.write("##INFO=<ID=SR,Number=1,sv_type=Integer,Description=\"Split-read support\">\n")
-vcf_file.write("##INFO=<ID=SVTYPE,Number=1,sv_type=String,Description=\"sv_type of structural variant\">\n")
+    "##INFO=<ID=POS2,Number=1,Type=Integer,Description=\"Genomic position for CHR2 in case of an inter-chromosomal translocation\">\n")
+vcf_file.write("##INFO=<ID=END,Number=1,Type=Integer,Description=\"End position of the structural variant\">\n")
+vcf_file.write("##INFO=<ID=PE,Number=1,Type=Integer,Description=\"Paired-end support of the structural variant\">\n")
+vcf_file.write("##INFO=<ID=SR,Number=1,Type=Integer,Description=\"Split-read support\">\n")
+vcf_file.write("##INFO=<ID=SVTYPE,Number=1,Type=String,Description=\"sv_type of structural variant\">\n")
 
 vcf_file.write(f"##reference={vars(args).get('reference')[0]}\n")
 

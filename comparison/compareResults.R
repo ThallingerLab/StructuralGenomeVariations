@@ -11,16 +11,16 @@ library(VariantAnnotation)
 library(StructuralVariantAnnotation)
 
 loadTruthGR <- function(bed_folder){
-  truth_files <- list.files(bed_folder, recursive = T, pattern = "*_summary.bed")
+  truth_files <- list.files(bed_folder, recursive = T, pattern = "*_summary.vcf")
   
   TruthSet <- list()
   
   for(file in truth_files){
    base <- unlist(strsplit(file, "/"))[1]
-   
+   vcf <- readVcf(paste(bed_folder,file, sep = "/"))
+   TruthSet[[base]] <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
   }
-  
-  
+  return(TruthSet) 
 }
 
 dir = "/Data/Analyses/2022/202205_SV-SIM/accuracy_testing/"
