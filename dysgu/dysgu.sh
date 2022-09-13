@@ -13,9 +13,8 @@ log_eval $PWD "docker run --name=dysgu -v $(pwd)/:$(pwd) -w $outdir zeunas/dysgu
   -o $outdir/dysgu.vcf \
   --max-cov -1 \
   --diploid False \
-  $fasta \ #Reference
-  $outdir/tmp \ #Working directory
-  $bam"
+  $fasta $outdir/tmp $bam"
+  #Reference #Workingdir #BAM
 
 START=$(docker inspect --format='{{.State.StartedAt}}' dysgu)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' dysgu)
