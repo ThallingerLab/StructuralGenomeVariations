@@ -38,7 +38,7 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Tools directory = $tools_dir"
 		;;
 
-    t) tools_list="$OPTARG"
+    l) tools_list="$OPTARG"
     declare -a tools=("$tools_list")
 		echo "Going to run the following tools = $tools"
 		;;
