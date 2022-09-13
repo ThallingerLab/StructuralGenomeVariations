@@ -9,6 +9,7 @@ fastq2="$4"
 outdir="$5"
 threads="$6"
 tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=softsv -v $(pwd):$(pwd) -w $outdir chrishah/softsv:1.4.2 SoftSV \
   -i $bam -o $outdir"
@@ -26,6 +27,7 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 TIME1=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo final time: $TIME1 seconds 2>&1 | tee "$outdir"/softsv_runtime.txt
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm softsv

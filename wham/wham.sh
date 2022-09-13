@@ -8,6 +8,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=wham -v $(pwd):$(pwd) -w $outdir gatksv/wham:8645aa whamg \
 -a $fasta \
@@ -22,6 +24,7 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir/wham_runtime.txt"
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm wham

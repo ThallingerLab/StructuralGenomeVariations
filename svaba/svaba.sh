@@ -8,7 +8,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
-
+tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=svaba -v $(pwd):$(pwd) -w $outdir iarcbioinfo/svaba-nf:v1.0 svaba run \
 -t $bam \
@@ -24,6 +25,7 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir/svaba_runtime.txt"
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm svaba

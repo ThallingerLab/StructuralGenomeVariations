@@ -5,6 +5,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=delly -v $(pwd)/:$(pwd) -w $outdir dellytools/delly delly call \
   -g $fasta \
@@ -16,9 +18,9 @@ STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly)
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
-TIME1=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
+FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo first time: "$TIME1"
+echo first time: "$FTIME"
 
 docker container rm delly
 
@@ -38,4 +40,5 @@ docker container rm delly
 
 #FTIME=$(($TIME1+$TIME2))
 
-echo final time: $TIME1 seconds 2>&1 | tee "$outdir"/delly_runtime.txt
+echo final time: $TIME1 seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"

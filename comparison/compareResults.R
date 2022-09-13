@@ -1,4 +1,3 @@
-
 library(stringr)
 library(seqinr)
 

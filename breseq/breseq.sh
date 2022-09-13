@@ -8,6 +8,9 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
+
 
 # Think about using bwa BAM files, running bowtie on all files will take forever, especially with so many settings ?!
 
@@ -26,6 +29,7 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir"/breseq_runtime.txt
+echo final time: $FTIME seconds
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm breseq

@@ -8,6 +8,9 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
+
 
 log_eval $PWD "docker run --name=gridss -v $(pwd):$(pwd) -w $outdir gridss/gridss:2.13.2 gridss \
  --reference $fasta \
@@ -26,4 +29,6 @@ FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 docker container rm gridss
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir"/gridss_runtime.txt
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
+

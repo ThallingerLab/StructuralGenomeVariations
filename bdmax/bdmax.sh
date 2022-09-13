@@ -13,6 +13,7 @@ fastq2="$4"
 outdir="$5"
 threads="$6"
 tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=bdmax1 -v $(pwd):$(pwd) -w $outdir vrohnie/bdmax:v1.4.5 perl \
   /root/breakdancer-1.4.5/perl/bam2cfg.pl \
@@ -47,7 +48,8 @@ TIME2=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 echo second time: $TIME2 seconds
 FTIME=$(($TIME1+$TIME2))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir"/bdmax_runtime.txt
+echo final time: $FTIME seconds
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm bdmax2
 

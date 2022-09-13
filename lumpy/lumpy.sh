@@ -8,6 +8,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
 
 #docker run --name=lumpy -v $(pwd)/:/in/ -w /in/ szarate/lumpy-sv:v0.3.0 lumpyexpress -B "$1".bam -S "$1".splitters.bam -D "$1".discordants.bam -o "$output"/lumpy/lumpyoutput_"$stamp".vcf
 
@@ -31,6 +33,7 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir/lumpy_runtime.txt"
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm lumpy

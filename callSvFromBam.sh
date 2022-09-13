@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:c:"
+OPTSTRING="hr:s:i:o:t:c:l:"
 
 usage()
 {
@@ -38,6 +38,11 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Tools directory = $tools_dir"
 		;;
 
+    t) tools_list="$OPTARG"
+    declare -a tools=("$tools_list")
+		echo "Going to run the following tools = $tools"
+		;;
+
     c) threads="$OPTARG"
 		echo "Threads = $threads"
 		;;
@@ -55,9 +60,9 @@ source $tools_dir/log_eval.sh
 
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 
-declare -a tools=("wham" "svaba" "pindel" "bdmax" "softsv" "manta" "lumpy" "delly" "gridss")
-#declare -a tools=("bdmax" "softsv")
+#declare -a tools=("wham" "svaba" "pindel" "bdmax" "softsv" "manta" "lumpy" "delly" "gridss")
 declare -a fractionOfReads=(25 50 75 100)
+
 seed=87
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
@@ -70,11 +75,14 @@ do
   fastqdir=$out_dir/fastq/$settings_string
   svsdir=$out_dir/svs/$settings_string
 
+  timing=${svsdir}/${stamp}_timing.tsv
+
   echo "THIS IS the DIRECTORY: $bamdir"
 
   if [ ! -d $svsdir ]; then
     mkdir $svsdir
   fi
+  touch $timing
 
   for dir in "$base_dir"/*; do
 
@@ -115,7 +123,7 @@ do
               mkdir "$tool_outdir"
 
               export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir"
+              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing"
             fi
 
           done

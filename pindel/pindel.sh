@@ -8,6 +8,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
 
 IS=$(docker run --rm -v $(pwd):$(pwd) -w $(pwd) staphb/samtools:1.15 samtools stats $bam | grep "insert size average" | sed 's/[^0-9.]*//g')
 
@@ -49,6 +51,7 @@ FTIME2=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 FTIME=$(($FTIME1+$FTIME2))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir/pindel_runtime.txt"
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
 
 docker container rm pindel1 pindel2

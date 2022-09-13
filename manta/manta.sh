@@ -9,6 +9,8 @@ fastq1="$3"
 fastq2="$4"
 outdir="$5"
 threads="$6"
+tools_dir="$7"
+timing="$8"
 
 log_eval $PWD "docker run --name=manta1 -v $(pwd):$(pwd) -w $outdir kfdrc/manta:1.6.0 /manta-1.6.0.centos6_x86_64/bin/configManta.py \
   --bam=$bam \
@@ -45,4 +47,5 @@ docker container rm manta2
 
 FTIME=$(($TIME1+$TIME2))
 
-echo final time: $FTIME seconds 2>&1 | tee "$outdir"/manta_runtime.txt
+echo final time: $FTIME seconds 2>&1
+echo "${outdir}\t$FTIME}" | tee -a "$timing"
