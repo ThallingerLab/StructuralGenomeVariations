@@ -4,6 +4,7 @@ import argparse
 import csv
 import os
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='SoftSVtoBedPE', description='Reformat SoftSV output to bedpe')
