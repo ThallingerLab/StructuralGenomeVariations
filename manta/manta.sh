@@ -48,4 +48,4 @@ docker container rm manta2
 FTIME=$(($TIME1+$TIME2))
 
 echo final time: $FTIME seconds 2>&1
-echo "${outdir}\t$FTIME}" | tee -a "$timing"
+echo -e "${outdir}\t${FTIME}" | tee -a "$timing"

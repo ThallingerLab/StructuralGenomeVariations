@@ -49,7 +49,7 @@ echo second time: $TIME2 seconds
 FTIME=$(($TIME1+$TIME2))
 
 echo final time: $FTIME seconds
-echo "${outdir}\t$FTIME}" | tee -a "$timing"
+echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
 
 docker container rm bdmax2
 

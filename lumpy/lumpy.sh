@@ -34,6 +34,6 @@ STOP_TIMESTAMP=$(date --date=$STOP +%s)
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 echo final time: $FTIME seconds 2>&1
-echo "${outdir}\t$FTIME}" | tee -a "$timing"
+echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
 
 docker container rm lumpy

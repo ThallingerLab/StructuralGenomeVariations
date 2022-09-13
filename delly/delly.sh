@@ -41,4 +41,4 @@ docker container rm delly
 #FTIME=$(($TIME1+$TIME2))
 
 echo final time: $TIME1 seconds 2>&1
-echo "${outdir}\t$FTIME}" | tee -a "$timing"
+echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
