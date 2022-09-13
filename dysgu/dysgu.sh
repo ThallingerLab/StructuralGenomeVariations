@@ -14,7 +14,7 @@ log_eval $PWD "docker run --name=dysgu -v $(pwd)/:$(pwd) -w $outdir zeunas/dysgu
   --max-cov -1 \
   --diploid False \
   $fasta \ #Reference
-  $outdir \ #Working directory
+  $outdir/tmp \ #Working directory
   $bam"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' dysgu)

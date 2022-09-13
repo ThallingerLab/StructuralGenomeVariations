@@ -132,7 +132,7 @@ do
           done
 
           if [ $fraction -ne 100 ]; then
-            rm $BAM_FRACTION
+            rm ${BAM_FRACTION}*
           fi
         done
       fi
