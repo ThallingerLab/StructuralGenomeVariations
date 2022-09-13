@@ -19,6 +19,7 @@ log_eval $PWD "docker run --name=lumpy -v $(pwd):$(pwd) -w $outdir brentp/smoove
 --name $(basename $outdir) \
 --genotype \
 --outdir $outdir \
+--processes $threads \
 $bam"
 
 #./lumpy/lumpy_awk_filter.sh "$output"/lumpy/lumpyoutput_"$stamp".vcf 100 "$output"/lumpy/lumpyoutput_CUTOFF_"$stamp".vcf

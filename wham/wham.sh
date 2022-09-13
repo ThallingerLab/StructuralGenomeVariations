@@ -14,6 +14,7 @@ timing="$8"
 log_eval $PWD "docker run --name=wham -v $(pwd):$(pwd) -w $outdir gatksv/wham:8645aa whamg \
 -a $fasta \
 -f $bam \
+-x $threads \
 > $outdir/wham.vcf 2> $outdir/wham.err"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' wham)

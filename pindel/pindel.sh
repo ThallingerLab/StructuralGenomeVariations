@@ -24,6 +24,7 @@ log_eval $PWD "docker run --name=pindel1 -v $(pwd):$(pwd) -w $outdir shuangbroad
 -f $fasta \
 -i $config \
 -c ALL \
+-T $threads \
 -o ${base}"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' pindel1)

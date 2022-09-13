@@ -15,7 +15,8 @@ log_eval $PWD "docker run --name=svaba -v $(pwd):$(pwd) -w $outdir iarcbioinfo/s
 -t $bam \
 -a $(basename $outdir) \
 -G $fasta \
---germline"
+--germline \
+-p $threads"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' svaba)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' svaba)
