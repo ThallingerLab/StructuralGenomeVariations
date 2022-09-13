@@ -39,7 +39,7 @@ while getopts "$OPTSTRING" SWITCH; do
 		;;
 
     l) tools_list="$OPTARG"
-    declare -a tools=("$tools_list")
+    declare -a tools=($tools_list)
 		echo "Going to run the following tools = $tools"
 		;;
 
@@ -125,8 +125,7 @@ do
               mkdir "$tool_outdir"
 
               export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/${tool}.sh \
-              $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
+              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
             fi
 
           done
