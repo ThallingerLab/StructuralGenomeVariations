@@ -17,15 +17,15 @@ log_eval $PWD "docker run --name=dysgu -v $(pwd)/:$(pwd) -w $outdir zeunas/dysgu
   $outdir \ #Working directory
   $bam"
 
-START=$(docker inspect --format='{{.State.StartedAt}}' delly)
-STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly)
+START=$(docker inspect --format='{{.State.StartedAt}}' dysgu)
+STOP=$(docker inspect --format='{{.State.FinishedAt}}' dysgu)
 
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-docker container rm delly
+docker container rm dysgu
 
 echo final time: $FTIME seconds 2>&1
 echo "${outdir}\t$FTIME}" | tee -a "$timing"
