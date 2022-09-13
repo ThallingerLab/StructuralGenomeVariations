@@ -25,7 +25,7 @@ STOP=$(docker inspect --format='{{.State.FinishedAt}}' softsv)
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
-TIME1=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
+FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 echo final time: $FTIME seconds 2>&1
 echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
