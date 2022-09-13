@@ -76,6 +76,7 @@ do
   svsdir=$out_dir/svs/$settings_string
 
   timing=${svsdir}/${stamp}_timing.tsv
+  log=${svsdir}/${stamp}_sv_calling.log
 
   echo "THIS IS the DIRECTORY: $bamdir"
 
@@ -83,6 +84,7 @@ do
     mkdir $svsdir
   fi
   touch $timing
+  touch $log
 
   for dir in "$base_dir"/*; do
 
@@ -123,7 +125,8 @@ do
               mkdir "$tool_outdir"
 
               export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing"
+              log_eval $PWD "$tools_dir/$tool/${tool}.sh \
+              $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
             fi
 
           done
