@@ -179,10 +179,13 @@ if n_svs > 0:
             direction = None
 
             if key in {"ins", "sub"}:
-                end = start + 1
                 random_insert_choice = input_insert[random.randrange(len(input_insert))]
                 random_insert = (rand_dna(random_dna_length) + random_insert_choice + rand_dna(random_dna_length))
                 insert_sequence = str(random_insert.seq)
+                if key == "ins":
+                    end = start + 1
+                else:
+                    end = start + random.randint(100, 5000)
             elif key in {"del", "inv", "sub"}:
                 end = start + random.randint(100, 5000)
             elif key in {"tdu", "itd", "tcp", "tci", "txp", "txi", "tcs","chr"}:

@@ -1,46 +1,77 @@
 library(stringr)
 library(seqinr)
-
-#BiocManager::install("vcfR")
-#BiocManager::install("VariantAnnotation")
-#BiocManager::install("StructuralVariantAnnotation")
-
-#library(vcfR)
 library(VariantAnnotation)
 library(StructuralVariantAnnotation)
 
-loadTruthGR <- function(bed_folder){
-  truth_files <- list.files(bed_folder, recursive = T, pattern = "*_summary.vcf")
-  
-  TruthSet <- list()
-  
-  for(file in truth_files){
-   base <- unlist(strsplit(file, "/"))[1]
-   vcf <- readVcf(paste(bed_folder,file, sep = "/"))
-   TruthSet[[base]] <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
-  }
-  return(TruthSet) 
+rootdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Analyses/", "/Data/Analyses/")
+setwd(rootdir)
+
+toolsdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Programs/", "~/Projects/StructuralGenomeVariations/comparison/")
+
+source(paste0(toolsdir,"sv_benchmark.R"))
+#adapted from https://github.com/PapenfussLab/sv_benchmark/blob/master/R/sv_benchmark.R
+
+
+findBreakpointOverlaps()
+
+# used only in na12878.R
+.distance <- function(r1, r2) {
+  return(data.frame(
+    min=pmax(0, pmax(start(r1), start(r2)) - pmin(end(r1), end(r2))),
+    max=pmax(end(r2) - start(r1), end(r1) - start(r2))))
 }
 
-dir = "/Data/Analyses/2022/202205_SV-SIM/accuracy_testing/"
-setwd(dir)
-
-delly_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/delly_50/delly.vcf")
-delly_gr <- breakpointRanges(delly_vcf)
-
-gridss_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/gridss_50/svs.vcf")
-gridss_gr <- c(breakpointRanges(gridss_vcf), breakendRanges(gridss_vcf))
+################################################################################
 
 
-manta_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/manta_50/results/variants/candidateSV.vcf.gz")
-manta_gr <- breakpointRanges(manta_vcf)
 
-lumpy_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/lumpy_50/lumpy_50-smoove.genotyped.vcf.gz")
-lumpy_gr <- breakpointRanges(lumpy_vcf)
+all_callers <- c("bdmax",
+                # "breseq",
+                 "delly",
+                 "dysgu",
+                 "gridss",
+                 "lumpy",
+                 "manta",
+                 "pindel",
+                 "softsv",
+                 "svaba",
+                 "wham")
 
-softsv_vcf <- readVcf("svs/MSv1_f100_l150_m350_s105/DEL-1/softsv_50/svsoft_parsed.vcf")
-softsv_gr <- breakpointRanges(softsv_vcf)
+vcf_patterns <- c("bdmax\\.vcf$",
+                  # "",
+                  "delly\\.vcf$",
+                  "dysgu\\.vcf$",
+                  "svs\\.vcf$",
+                  "smoove\\.genotyped\\.vcf\\.gz$",
+                  "diploidSV\\.vcf\\.gz$",
+                  "\\.sorted.*?\\.vcf$",
+                  "softsv_parsed\\.vcf$",
+                  "svaba\\.sv\\.vcf$",
+                  "wham\\.vcf$")
 
+names(vcf_patterns) <- all_callers
+
+# manta alternative: candidateSV.vcf.gz (in results/variants/)
+
+################################################################################
+#### SIMULATIONS
+
+truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/bed"))
+
+VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/svs/HSXn_f100_l150_m550_s165/"),x))
+
+lapply(VcfCallMetadata, length)
+
+vcf <- readVcf(VcfCallMetadata$abs_file[715])
+sample_id <- VcfCallMetadata$sample[715]
+
+test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+
+test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truth_set[[sample_id]], maxgap = 100, ignore.strand = T, id = sample_id)
+
+hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truth_set[[sample_id]], maxgap=10, ignore.strand=T, sizemargin=0.25))
+
+test_gr[hits$queryHits]
 
 manta_gr@elementMetadata
 
