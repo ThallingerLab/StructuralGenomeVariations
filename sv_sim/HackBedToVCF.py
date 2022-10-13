@@ -114,7 +114,7 @@ with open(in_file) as file:
                     vcf_file.write(f"{chr1}\t{end+1}\tCHR_{str(idx)}b\tN\t{toVcfBreakend(chr1,end+1,False,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=CHR_{str(idx)}\n")
         elif sv_def == options_dict.get("sub"):
             vcf_file.write(f"{chr1}\t{start}\tSUB_{str(idx)}a\tN\t{insertion[0:100]}.\t.\tPASS\tCHR2={chr1};END={start};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
-            vcf_file.write(f"{chr1}\t{end}\tSUB_{str(idx)}b\tN\t{insertion[(len(insertion)-100):len(insertion)]}\t.\tPASS\tCHR2={chr1};END={end};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
+            vcf_file.write(f"{chr1}\t{end}\tSUB_{str(idx)}b\tN\t.{insertion[(len(insertion)-100):len(insertion)]}\t.\tPASS\tCHR2={chr1};END={end};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
         elif sv_def == options_dict.get("tcs"):
             inserts = insertion.split(":")
             chr2 = inserts[1]
