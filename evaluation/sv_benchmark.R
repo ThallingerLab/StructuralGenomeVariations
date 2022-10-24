@@ -32,7 +32,7 @@ loadTruthGR <- function(directory){
   for(file in truth_files){
     base <- unlist(strsplit(file, "/"))[1]
     vcf <- readVcf(paste(directory,file, sep = "/"))
-    TruthSet[[base]] <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+    TruthSet[[base]] <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf, inferMissingBreakends=TRUE))
   }
   return(TruthSet) 
 }
