@@ -6,7 +6,7 @@ library(StructuralVariantAnnotation)
 rootdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Analyses/", "/Data/Analyses/")
 setwd(rootdir)
 
-toolsdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Programs/", "~/Projects/StructuralGenomeVariations/comparison/")
+toolsdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Programs/", "~/Projects/StructuralGenomeVariations/evaluation/")
 
 source(paste0(toolsdir,"sv_benchmark.R"))
 #adapted from https://github.com/PapenfussLab/sv_benchmark/blob/master/R/sv_benchmark.R
@@ -56,20 +56,21 @@ names(vcf_patterns) <- all_callers
 ################################################################################
 #### SIMULATIONS
 
-truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/bed"))
+truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/20220819_bed/"))
 
 VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/svs/HSXn_f100_l150_m550_s165/"),x))
 
-lapply(VcfCallMetadata, length)
+ind <- 120
 
-vcf <- readVcf(VcfCallMetadata$abs_file[715])
-sample_id <- VcfCallMetadata$sample[715]
+vcf <- readVcf(VcfCallMetadata$gridss$abs_file[ind])
+sample_id <- VcfCallMetadata$gridss$sample[ind]
+vcf_id <- paste("gridss",paste(VcfCallMetadata$gridss[ind,2:7], collapse = ":"), sep = ":")
 
 test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
 
-test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truth_set[[sample_id]], maxgap = 100, ignore.strand = T, id = sample_id)
+test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truth_set[[sample_id]], maxgap = 100, ignore.strand = T, id = vcf_id)
 
-hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truth_set[[sample_id]], maxgap=10, ignore.strand=T, sizemargin=0.25))
+hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truth_set[[sample_id]], maxgap=100, ignore.strand=T, sizemargin=0.25))
 
 test_gr[hits$queryHits]
 

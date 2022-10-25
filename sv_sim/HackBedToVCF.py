@@ -9,9 +9,9 @@ import os
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        prog='bdmaxToVCF', description='Reformat bdmax output to bedpe')
+        prog='HockBedToVCF', description='Reformat the bedmaker output to VCF')
     parser.add_argument('-i', '--inFile', type=str, nargs='+',
-                        help='file containing bdmax tsv file')
+                        help='file containing summary bed file')
     parser.add_argument('-r', '--reference', type=str, nargs='+',
                         help='base reference fasta')
     parser.add_argument('-c', '--contigs', type=str, nargs='+',
@@ -50,6 +50,10 @@ vcf_file.write("##INFO=<ID=EVENT,Number=1,Type=String,Description=\"EVENT the SV
 vcf_file.write("##INFO=<ID=MATEID,Number=1,Type=String,Description=\"ID of mate breakend or breakpoint \">\n")
 
 vcf_file.write(f"##reference={vars(args).get('reference')[0]}\n")
+
+for cont in vars(args).get("contigs"):
+    conts = cont.split(":")
+    vcf_file.write(f"##contig=<ID={conts[0]},length={conts[1]}>\n")
 
 vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\n")
 

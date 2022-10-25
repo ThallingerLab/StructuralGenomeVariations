@@ -28,12 +28,14 @@ loadTruthGR <- function(directory){
   truth_files <- list.files(directory, recursive = T, pattern = "*_summary.vcf")
   
   TruthSet <- list()
-  
+  options(warn=1)
   for(file in truth_files){
+    print(paste("Reading file:", file))
     base <- unlist(strsplit(file, "/"))[1]
     vcf <- readVcf(paste(directory,file, sep = "/"))
     TruthSet[[base]] <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf, inferMissingBreakends=TRUE))
   }
+  options(warn=0)
   return(TruthSet) 
 }
 
@@ -56,7 +58,7 @@ ParseMetadata <- function(directory, pattern) {
     vcf_table <- .ParseMetadata(directory, pattern)
     saveCache(vcf_table, key=key, dirs=".Rcache/ParseMetadata")
   }
-
+  
   return(vcf_table)
 }
 
@@ -520,68 +522,80 @@ import.repeatmasker.fa.out <- function(repeatmasker.fa.out) {
 	return(grrm)
 }
 
-findBreakpointOverlaps <- function (query, subject, maxgap = -1L, minoverlap = 0L, ignore.strand = FALSE, 
-          sizemargin = NULL, restrictMarginToSizeMultiple = NULL) 
-{
-  .assertValidBreakpointGRanges(query)
-  .assertValidBreakpointGRanges(subject)
-  pquery = partner(query)
-  squery = partner(subject)
-  localhits = findOverlaps(query, subject, maxgap = maxgap, 
-                           minoverlap = minoverlap, type = "any", select = "all", 
-                           ignore.strand = ignore.strand)
-  remotehits = findOverlaps(pquery, squery, maxgap = maxgap, 
-                            minoverlap = minoverlap, type = "any", select = "all", 
-                            ignore.strand = ignore.strand)
+findBreakpointOverlaps <- function(query, subject, maxgap=-1L, minoverlap=0L, ignore.strand=FALSE, sizemargin=NULL, restrictMarginToSizeMultiple=NULL) {
+  # .assertValidBreakpointGRanges(query)
+  # .assertValidBreakpointGRanges(subject)
+  pquery = partner(query, selfPartnerSingleBreakends = T)
+  squery = partner(subject, selfPartnerSingleBreakends = T)
+  localhits = findOverlaps(query, subject, maxgap=maxgap, minoverlap=minoverlap, type="any", select="all", ignore.strand=ignore.strand)
+  remotehits = findOverlaps(pquery, squery, maxgap=maxgap, minoverlap=minoverlap, type="any", select="all", ignore.strand=ignore.strand)
+  ## duplicated() version:
+  #hits = Hits(c(S4Vectors::queryHits(localhits), S4Vectors::queryHits(remotehits)), c(S4Vectors::subjectHits(localhits), S4Vectors::subjectHits(remotehits)), nLnode=nLnode(localhits), nRnode=nRnode(localhits), sort.by.query=TRUE)
+  #hits = hits[duplicated(hits)]
+  
+  ## intersect() version:
   hits = BiocGenerics::intersect(localhits, remotehits)
+  
+  ## dplyr() version:
+  #hits <- dplyr::bind_rows(
+  #	as.data.frame(localhits, row.names=NULL),
+  #	as.data.frame(remotehits, row.names=NULL))
+  #hits = hits %>% dplyr::arrange(queryHits, subjectHits) %>%
+  #	dplyr::filter(!is.na(dplyr::lead(.$queryHits)) & !is.na(dplyr::lead(.$subjectHits)) & dplyr::lead(.$queryHits) == .$queryHits & dplyr::lead(.$subjectHits) == .$subjectHits)
+  
+  ## dplyr() exploiting the sorted nature of the findOverlaps():
+  #hits = Hits(c(S4Vectors::queryHits(localhits), S4Vectors::queryHits(remotehits)), c(S4Vectors::subjectHits(localhits), S4Vectors::subjectHits(remotehits)), nLnode=nLnode(localhits), nRnode=nRnode(localhits), sort.by.query=TRUE)
+  #queryLead  = dplyr::lead(S4Vectors::queryHits(hits))
+  #querySubject  = dplyr::lead(S4Vectors::queryHits(hits))
+  #hits = hits[
+  #	!is.na(queryLead) &d
+  #	!is.na(querySubject) &
+  #	queryLead == S4Vectors::queryHits(hits) &
+  #	querySubject == S4Vectors::subjectHits(hits)]
   if (!is.null(sizemargin) && !is.na(sizemargin)) {
+    # take into account confidence intervals when calculating event size
     callwidth <- .distance(query, pquery)
     truthwidth <- .distance(subject, squery)
     callsize <- callwidth + .replaceNa(query$insLen, 0)
-    truthsize <- truthwidth + .replaceNa(subject$insLen, 
-                                         0)
-    sizeerror <- .distance(IRanges::IRanges(start = callsize$min[S4Vectors::queryHits(hits)], 
-                                            end = callsize$max[S4Vectors::queryHits(hits)]), 
-                           IRanges::IRanges(start = truthsize$min[S4Vectors::subjectHits(hits)], 
-                                            end = truthsize$max[S4Vectors::subjectHits(hits)]))$min
-    hits <- hits[sizeerror - 1 < sizemargin * pmin(callsize$max[S4Vectors::queryHits(hits)], 
-                                                   truthsize$max[S4Vectors::subjectHits(hits)]), ]
-    localbperror <- .distance(query[S4Vectors::queryHits(hits)], 
-                              subject[S4Vectors::subjectHits(hits)])$min
-    remotebperror <- .distance(pquery[S4Vectors::queryHits(hits)], 
-                               squery[S4Vectors::subjectHits(hits)])$min
+    truthsize <- truthwidth + .replaceNa(subject$insLen, 0)
+    sizeerror <- .distance(
+      IRanges::IRanges(start=callsize$min[S4Vectors::queryHits(hits)], end=callsize$max[S4Vectors::queryHits(hits)]),
+      IRanges::IRanges(start=truthsize$min[S4Vectors::subjectHits(hits)], end=truthsize$max[S4Vectors::subjectHits(hits)])
+    )$min
+    # event sizes must be within sizemargin
+    hits <- hits[sizeerror - 1 < sizemargin * pmin(callsize$max[S4Vectors::queryHits(hits)], truthsize$max[S4Vectors::subjectHits(hits)]),]
+    # further restrict breakpoint positions for small events
+    localbperror <- .distance(query[S4Vectors::queryHits(hits)], subject[S4Vectors::subjectHits(hits)])$min
+    remotebperror <- .distance(pquery[S4Vectors::queryHits(hits)], squery[S4Vectors::subjectHits(hits)])$min
     if (!is.null(restrictMarginToSizeMultiple)) {
-      allowablePositionError <- (pmin(callsize$max[S4Vectors::queryHits(hits)], 
-                                      truthsize$max[S4Vectors::subjectHits(hits)]) * 
-                                   restrictMarginToSizeMultiple + 1)
-      hits <- hits[localbperror <= allowablePositionError & 
-                     remotebperror <= allowablePositionError, ]
+      allowablePositionError <- (pmin(callsize$max[S4Vectors::queryHits(hits)], truthsize$max[S4Vectors::subjectHits(hits)]) * restrictMarginToSizeMultiple + 1)
+      hits <- hits[localbperror <= allowablePositionError & remotebperror <= allowablePositionError, ]
     }
   }
   return(hits)
 }
-
-findBreakEndOverlaps <- function (query, subject, maxgap = -1L, minoverlap = 0L, ignore.strand = FALSE, 
-                                    sizemargin = NULL, restrictMarginToSizeMultiple = NULL) 
-{
-  .assertValidBreakpointGRanges(subject)
-  squery = partner(subject)
-  
-  localhits = findOverlaps(query, subject, maxgap = maxgap, 
-                           minoverlap = minoverlap, type = "any", select = "all", 
-                           ignore.strand = ignore.strand)
-  
-  remotehits = findOverlaps(query, squery, maxgap = maxgap, 
-                            minoverlap = minoverlap, type = "any", select = "all", 
-                            ignore.strand = ignore.strand)
-  
-  hits = BiocGenerics::intersect(localhits, remotehits)
-  
-  
-  if (!is.null(sizemargin) && !is.na(sizemargin)) {
-    localbperror <- .distance(query[S4Vectors::queryHits(hits)], 
-                              subject[S4Vectors::subjectHits(hits)])$min
-  }
-  
-  return(hits)
-}
+# 
+# findBreakEndOverlaps <- function (query, subject, maxgap = -1L, minoverlap = 0L, ignore.strand = FALSE, 
+#                                     sizemargin = NULL, restrictMarginToSizeMultiple = NULL) 
+# {
+#   .assertValidBreakpointGRanges(subject)
+#   squery = partner(subject)
+#   
+#   localhits = findOverlaps(query, subject, maxgap = maxgap, 
+#                            minoverlap = minoverlap, type = "any", select = "all", 
+#                            ignore.strand = ignore.strand)
+#   
+#   remotehits = findOverlaps(query, squery, maxgap = maxgap, 
+#                             minoverlap = minoverlap, type = "any", select = "all", 
+#                             ignore.strand = ignore.strand)
+#   
+#   hits = BiocGenerics::intersect(localhits, remotehits)
+#   
+#   
+#   if (!is.null(sizemargin) && !is.na(sizemargin)) {
+#     localbperror <- .distance(query[S4Vectors::queryHits(hits)], 
+#                               subject[S4Vectors::subjectHits(hits)])$min
+#   }
+#   
+#   return(hits)
+# }
