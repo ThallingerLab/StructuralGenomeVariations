@@ -61,7 +61,7 @@ source $tools_dir/log_eval.sh
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 
 declare -a tools=("breseq")
-declare -a fractionOfReads=(25 50 75 100)
+declare -a fractionOfReads=(100)
 seed=87
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
@@ -79,9 +79,16 @@ do
 
   echo "THIS IS the DIRECTORY: $fastqdir"
 
+  timing=${svsdir}/${stamp}_timing.tsv
+  log=${svsdir}/${stamp}_sv_calling.log
+
+  echo "THIS IS the DIRECTORY: $bamdir"
+
   if [ ! -d $svsdir ]; then
     mkdir $svsdir
   fi
+  touch $timing
+  touch $log
 
   for dir in "$fasta_dir"/*; do
 
@@ -101,7 +108,7 @@ do
 
       if [ -s "$READ1_FILE" -a -s "$READ2_FILE" ]; then
 
-#        for fraction in "${fractionOfReads[@]}"; do
+        for fraction in "${fractionOfReads[@]}"; do
 
 #          READ1_FILE_FRACTION=$READ1_FILE
 #          READ2_FILE_FRACTION=$READ2_FILE
@@ -131,7 +138,7 @@ do
 #          if [ $fraction -ne 100 ]; then
 #            rm $BAM_FRACTION
 #          fi
-#        done
+        done
       else
         echo "Could not find files $READ1_FILE, $READ2_FILE"
       fi
