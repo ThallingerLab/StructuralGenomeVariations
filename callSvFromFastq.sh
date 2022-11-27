@@ -87,8 +87,8 @@ do
         mkdir $svsdir/$base
       fi
 
-      READ1_FILE="${fastqdir}/${base}_1.fq.gz"
-      READ2_FILE="${fastqdir}/${base}_2.fq.gz"
+      READ1_FILE="${fastq_dir}/${base}_1.fq.gz"
+      READ2_FILE="${fastq_dir}/${base}_2.fq.gz"
 
       echo "╔══════════════════════════════════════════════════════════════╗"
       echo "║                      starting SV analysis                    ║"
@@ -125,6 +125,8 @@ do
 #            rm $BAM_FRACTION
 #          fi
 #        done
+      else
+        echo "Could not find files $READ1_FILE, $READ2_FILE"
       fi
     fi
   done
