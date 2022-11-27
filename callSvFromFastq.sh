@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:c:"
+OPTSTRING="hr:s:i:o:t:l:c:"
 
 usage()
 {
@@ -36,6 +36,11 @@ while getopts "$OPTSTRING" SWITCH; do
     t) tools_dir="$OPTARG"
     tools_dir=$(readlink -e "$tools_dir")
 		echo "Tools directory = $tools_dir"
+		;;
+
+    l) tools_list="$OPTARG"
+    declare -a tools=($tools_list)
+		echo "Going to run the following tools = $tools"
 		;;
 
     c) threads="$OPTARG"
