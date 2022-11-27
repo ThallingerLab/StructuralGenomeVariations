@@ -23,9 +23,9 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Settings = $settings"
 		;;
 
-    i) base_dir="$OPTARG"
-    base_dir=$(readlink -e "$base_dir")
-		echo "Fasta Directory = $base_dir"
+    i) fastq_dir="$OPTARG"
+    fastq_dir=$(readlink -e "$fastq_dir")
+		echo "Fastq Input Directory = $fastq_dir"
 		;;
 
     o) out_dir="$OPTARG"
@@ -70,17 +70,15 @@ org="CBS7435"
 grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 do
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
-  bamdir=$out_dir/bam/$settings_string
-  fastqdir=$out_dir/fastq/$settings_string
   svsdir=$out_dir/svs/$settings_string
 
-  echo "THIS IS the DIRECTORY: $bamdir"
+  echo "THIS IS the DIRECTORY: $fastq_dir"
 
   if [ ! -d $svsdir ]; then
     mkdir $svsdir
   fi
 
-  for dir in "$base_dir"/*; do
+  for dir in "$fastq_dir"/*; do
 
     if [[ -d $dir ]]; then
       base=$(basename "$dir")
