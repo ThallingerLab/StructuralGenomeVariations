@@ -14,7 +14,7 @@ timing="$8"
 
 # Think about using bwa BAM files, running bowtie on all files will take forever, especially with so many settings ?!
 
-log_eval $PWD "docker run --name=breseq -v $(pwd)/:$(pwd) -w $outdir pvstodghill/breseq:0.35.7__2021-08-03 breseq \
+log_eval $PWD "docker run --name=breseq -u 1001:1001 -v $(pwd)/:$(pwd) -w $outdir pvstodghill/breseq:0.35.7__2021-08-03 breseq \
   -o $outdir -r $fasta \
   --brief-html-output \
   --no-javascript \
