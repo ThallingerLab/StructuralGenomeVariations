@@ -23,9 +23,9 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Settings = $settings"
 		;;
 
-    i) fastq_dir="$OPTARG"
-    fastq_dir=$(readlink -e "$fastq_dir")
-		echo "Fastq Input Directory = $fastq_dir"
+    i) fasta_dir="$OPTARG"
+    fasta_dir=$(readlink -e "$fasta_dir")
+		echo "Fasta Directory = $fasta_dir"
 		;;
 
     o) out_dir="$OPTARG"
@@ -70,15 +70,17 @@ org="CBS7435"
 grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 do
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
-  svsdir=$out_dir/svs/$settings_string
+  bamdir=$out_dir/${fasta_dir/fasta/bam}/$settings_string
+  fastqdir=$out_dir/${fasta_dir/fasta/fastq}/$settings_string
+  svsdir=$out_dir/${fasta_dir/fasta/svs}/$settings_string
 
-  echo "THIS IS the DIRECTORY: $fastq_dir"
+  echo "THIS IS the DIRECTORY: $fastqdir"
 
   if [ ! -d $svsdir ]; then
     mkdir $svsdir
   fi
 
-  for dir in "$fastq_dir"/*; do
+  for dir in "$fasta_dir"/*; do
 
     if [[ -d $dir ]]; then
       base=$(basename "$dir")
@@ -87,8 +89,8 @@ do
         mkdir $svsdir/$base
       fi
 
-      READ1_FILE="${fastq_dir}/${base}_1.fq.gz"
-      READ2_FILE="${fastq_dir}/${base}_2.fq.gz"
+      READ1_FILE="${fastqdir}/${base}_1.fq.gz"
+      READ2_FILE="${fastqdir}/${base}_2.fq.gz"
 
       echo "╔══════════════════════════════════════════════════════════════╗"
       echo "║                      starting SV analysis                    ║"
