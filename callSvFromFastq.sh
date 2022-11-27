@@ -93,18 +93,18 @@ do
 
       if [ -s "$READ1_FILE" -a -s "$READ2_FILE" ]; then
 
-        for fraction in "${fractionOfReads[@]}"; do
+#        for fraction in "${fractionOfReads[@]}"; do
 
-          READ1_FILE_FRACTION=$READ1_FILE
-          READ2_FILE_FRACTION=$READ2_FILE
+#          READ1_FILE_FRACTION=$READ1_FILE
+#          READ2_FILE_FRACTION=$READ2_FILE
 
-          if [ $fraction -ne 100 ]; then
-            READ1_FILE_FRACTION="${READ1_FILE/.fastq/-${fraction}.fastq}"
-            READ2_FILE_FRACTION="${READ2_FILE/.fastq/-${fraction}.fastq}"
+#          if [ $fraction -ne 100 ]; then
+#            READ1_FILE_FRACTION="${READ1_FILE/.fastq/-${fraction}.fastq}"
+#            READ2_FILE_FRACTION="${READ2_FILE/.fastq/-${fraction}.fastq}"
 
-            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
-              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
-          fi
+#            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
+#              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
+#          fi
 
           for tool in "${tools[@]}"; do
             tool_outdir="$svsdir/$base/${tool}_${fraction}"
@@ -113,16 +113,16 @@ do
               mkdir "$tool_outdir"
 
               export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads"
+              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
             fi
 
           done
 
-          if [ $fraction -ne 100 ]; then
-            rm $BAM_FRACTION
-          fi
-        done
-      fi
+#          if [ $fraction -ne 100 ]; then
+#            rm $BAM_FRACTION
+#          fi
+#        done
+#      fi
     fi
   done
 done

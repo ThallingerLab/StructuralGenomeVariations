@@ -3,7 +3,7 @@ import pandas as pd
 import pyranges as pr
 from glob import glob
 
-result = [y for x in os.walk("/Data/Analyses/2022/202205_SV-SIM/") for y in glob(os.path.join(x[0], '*summary.bed'))]
+result = [y for x in os.walk("/Data/Analyses/2022/202205_SV-SIM/bed") for y in glob(os.path.join(x[0], '*summary.bed'))]
 
 svs = pd.DataFrame(columns=['Chromosome', 'Start', 'End', 'Name', 'Score', 'Strand'],)
 
