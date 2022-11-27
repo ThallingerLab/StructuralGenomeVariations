@@ -113,6 +113,8 @@ do
 #            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
 #              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
 #          fi
+          # For teh sake of consistency
+          BAM_FRACTION="NONE"
 
           for tool in "${tools[@]}"; do
             tool_outdir="$svsdir/$base/${tool}_${fraction}"
