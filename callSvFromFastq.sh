@@ -122,7 +122,7 @@ do
 #            rm $BAM_FRACTION
 #          fi
 #        done
-#      fi
+      fi
     fi
   done
 done
