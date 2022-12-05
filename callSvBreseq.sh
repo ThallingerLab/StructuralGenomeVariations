@@ -61,7 +61,7 @@ source $tools_dir/log_eval.sh
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 
 tool="breseq"
-declare -a fractionOfReads=(100)
+declare -a fractionOfReads=(100 75 50 25)
 seed=87
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
