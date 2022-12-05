@@ -115,7 +115,7 @@ do
 
           tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
-          BAM_SORTED="$svsdir/$base/${tool}_100/base/reference.bam"
+          BAM_SORTED="$svsdir/$base/${tool}_100/data/reference.bam"
           BAM_FRACTION="NONE"
 
           if [ $fraction -ne 100 ]; then
