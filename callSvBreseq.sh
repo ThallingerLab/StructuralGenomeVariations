@@ -60,7 +60,7 @@ source $tools_dir/log_eval.sh
 
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 
-declare -a tools=("breseq")
+tool="breseq"
 declare -a fractionOfReads=(100)
 seed=87
 
@@ -113,28 +113,29 @@ do
 #          READ1_FILE_FRACTION=$READ1_FILE
 #          READ2_FILE_FRACTION=$READ2_FILE
 
-#          if [ $fraction -ne 100 ]; then
-#            READ1_FILE_FRACTION="${READ1_FILE/.fastq/-${fraction}.fastq}"
-#            READ2_FILE_FRACTION="${READ2_FILE/.fastq/-${fraction}.fastq}"
+          tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
-#            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
-#              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
-#          fi
-
-          # For teh sake of consistency
+          BAM_SORTED="$svsdir/$base/${tool}_100/base/reference.bam"
           BAM_FRACTION="NONE"
 
-          for tool in "${tools[@]}"; do
-            tool_outdir="$svsdir/$base/${tool}_${fraction}"
+          if [ $fraction -ne 100 ]; then
+            BAM_FRACTION="${BAM_SORTED/.bam/-${fraction}.bam}"
+            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
+              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
+          fi
 
-            if [ ! -d "$tool_outdir" ]; then
-              mkdir "$tool_outdir"
+          # For teh sake of consistency
 
+          if [ ! -d "$tool_outdir" ]; then
+            mkdir "$tool_outdir"
+            if [ "$BAM_FRACTION" = "NONE" ]; then
               export -f log_eval
               log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
+            elif [ -s "$BAM_SORTED" ]; then
+              export -f log_eval
+              log_eval $PWD "$tools_dir/$tool/breseq_bam.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
             fi
-
-          done
+          fi
 
 #          if [ $fraction -ne 100 ]; then
 #            rm $BAM_FRACTION
