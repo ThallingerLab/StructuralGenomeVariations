@@ -118,20 +118,25 @@ do
           BAM_SORTED="$svsdir/$base/${tool}_100/data/reference.bam"
           BAM_FRACTION="NONE"
 
-          if [ $fraction -ne 100 ]; then
+          echo "Fraction is: $fraction"
+
+          if [ "$fraction" -ne 100 ]; then
             BAM_FRACTION="${BAM_SORTED/.bam/-${fraction}.bam}"
+
+            echo "Downsampling to: $BAM_FRACTION"
+
             log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
               --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
           fi
 
-          # For teh sake of consistency
+          # For the sake of consistency
 
           if [ ! -d "$tool_outdir" ]; then
             mkdir "$tool_outdir"
             if [ "$BAM_FRACTION" = "NONE" ]; then
               export -f log_eval
               log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
-            elif [ -s "$BAM_SORTED" ]; then
+            elif [ -s "$BAM_FRACTION" ]; then
               export -f log_eval
               log_eval $PWD "$tools_dir/$tool/breseq_bam.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
             fi
