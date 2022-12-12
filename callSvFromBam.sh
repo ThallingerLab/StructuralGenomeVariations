@@ -89,7 +89,7 @@ do
   touch $timing
   touch $log
 
-  for dir in "$base_dir"/*; do
+  for dir in "$fasta_dir"/*; do
 
     if [[ -d $dir ]]; then
       base=$(basename "$dir")
