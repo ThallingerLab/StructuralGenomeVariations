@@ -70,10 +70,13 @@ org="CBS7435"
 
 grep -v '^#' $settings | while IFS=$'\t' read -r -a settings_array
 do
+
+  base_in=$(basename "$fasta_dir")
+
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
-  bamdir=$out_dir/bam/$settings_string
-  fastqdir=$out_dir/fastq/$settings_string
-  svsdir=$out_dir/svs/$settings_string
+  bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+  fastqdir=$out_dir/${base_in/fasta/fastq}/$settings_string
+  svsdir=$out_dir/${base_in/fasta/svs}/$settings_string
 
   timing=${svsdir}/${stamp}_timing.tsv
   log=${svsdir}/${stamp}_sv_calling.log
