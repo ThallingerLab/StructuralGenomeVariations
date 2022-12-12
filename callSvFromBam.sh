@@ -23,9 +23,9 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Settings = $settings"
 		;;
 
-    i) base_dir="$OPTARG"
-    base_dir=$(readlink -e "$base_dir")
-		echo "Fasta Directory = $base_dir"
+    i) fasta_dir="$OPTARG"
+    fasta_dir=$(readlink -e "$fasta_dir")
+		echo "Fasta Directory = $fasta_dir"
 		;;
 
     o) out_dir="$OPTARG"
