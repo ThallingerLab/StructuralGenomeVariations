@@ -1,14 +1,15 @@
 library(stringr)
 library(seqinr)
 library(VariantAnnotation)
-library(StructuralVariantAnnotation)
+devtools::install("/home/veronika/Projects/StructuralVariantAnnotation/")
 
 rootdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Analyses/", "/Data/Analyses/")
 setwd(rootdir)
 
-toolsdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Programs/", "~/Projects/StructuralGenomeVariations/evaluation/")
+toolsdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Programs/", "~/Projects/")
 
-source(paste0(toolsdir,"sv_benchmark.R"))
+source(paste0(toolsdir,"StructuralVariantAnnotation/R/util.R"))
+source(paste0(toolsdir,"StructuralGenomeVariations/evaluation/sv_benchmark.R"))
 #adapted from https://github.com/PapenfussLab/sv_benchmark/blob/master/R/sv_benchmark.R
 
 
@@ -26,7 +27,7 @@ findBreakpointOverlaps()
 
 
 all_callers <- c("bdmax",
-                # "breseq",
+                 # "breseq",
                  "delly",
                  "dysgu",
                  "gridss",
@@ -38,7 +39,7 @@ all_callers <- c("bdmax",
                  "wham")
 
 vcf_patterns <- c("bdmax\\.vcf$",
-                  # "",
+                  # "output\\.vcf$",
                   "delly\\.vcf$",
                   "dysgu\\.vcf$",
                   "svs\\.vcf$",
@@ -56,11 +57,30 @@ names(vcf_patterns) <- all_callers
 ################################################################################
 #### SIMULATIONS
 
-truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/20220819_bed/"))
+truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/20220819_bed/"))
 
-VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/svs/HSXn_f100_l150_m550_s165/"),x))
+VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/20220819_svs/HSXn_f100_l150_m550_s165/"),x))
 
-ind <- 120
+
+AllResults <- lapply(VcfCallMetadata, function(metadata){
+  res <- list()
+  for(ind in 1:nrow(metadata)){
+    vcf <- readVcf(metadata$abs_file[ind])
+    sample_id <- metadata$sample[ind]
+    vcf_id <- paste("gridss",paste(metadata[ind,2:7], collapse = ":"), sep = ":")
+    
+    test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+    
+    res <- c(res, ScoreVariantsFromTruthVCF(test_gr, truthgr = truth_set[[sample_id]], maxgap = 10, ignore.strand = T, id = vcf_id))
+  }
+  return(res)
+})
+
+
+#Formulas
+# R = TP/(TP + FN) ... (TP + FN) == All True variants
+# P = TP/(TP + FP) ... (TP + FP) == All called variants
+# F1 = 2*P*R/(P + R)
 
 vcf <- readVcf(VcfCallMetadata$gridss$abs_file[ind])
 sample_id <- VcfCallMetadata$gridss$sample[ind]
@@ -69,6 +89,10 @@ vcf_id <- paste("gridss",paste(VcfCallMetadata$gridss[ind,2:7], collapse = ":"),
 test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
 
 test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truth_set[[sample_id]], maxgap = 100, ignore.strand = T, id = vcf_id)
+
+sum(test_scores$calls$tp+test_scores$calls$duptp)
+sum(test_scores$truth$tp)
+
 
 hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truth_set[[sample_id]], maxgap=100, ignore.strand=T, sizemargin=0.25))
 
