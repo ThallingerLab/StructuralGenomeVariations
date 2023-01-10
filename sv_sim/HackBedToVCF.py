@@ -55,7 +55,7 @@ for cont in vars(args).get("contigs"):
     conts = cont.split(":")
     vcf_file.write(f"##contig=<ID={conts[0]},length={conts[1]}>\n")
 
-vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\n")
+vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tCHR1\n")
 
 def toVcfBreakend(localChr, localPos, localPositive, remoteChr, remotePos, remotePositive):
     if remotePositive:

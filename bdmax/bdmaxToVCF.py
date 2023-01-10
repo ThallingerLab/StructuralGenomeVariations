@@ -81,9 +81,10 @@ with open(in_file) as file:
     tsv = csv.reader(file, delimiter="\t")
     for idx, line in enumerate(tsv):
         if line[0].startswith("#Chr1"):
-            vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\n")
+            vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tCHR1\n")
         elif line[0].startswith("#"):
-            vcf_file.write("#"+'\t'.join(line) + "\n")
+            # vcf_file.write("#"+'\t'.join(line) + "\n")
+            print("Skipping header line:" + '\t'.join(line))
         else:
             # Chr1	Pos1	Orientation1	Chr2	Pos2	Orientation2	sv_type	Size	Score	num_Reads	num_Reads_lib	c1c173e1dd7a0e58ff9bd127c0cdce16.sc.bam
             leftChr = line[0]
