@@ -104,7 +104,7 @@ with open(in_file) as file:
                 if direction == "forward":
                     vcf_file.write(f"{chr1}\t{start}\tTXP_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,True)}\t.\tPASS\tCHR2={chr2};END={pos2};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\n")
                     vcf_file.write(f"{chr1}\t{end}\tTXP_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\n")
-                    vcf_file.write(f"{chr1}\t{end}\tTXP_{str(idx)}c\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\n")
+                    vcf_file.write(f"{chr1}\t{start}\tTXP_{str(idx)}c\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\n")
                 else:
                     vcf_file.write(f"{chr1}\t{start}\tTXI_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,False)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXI_{str(idx)}\n")
                     vcf_file.write(f"{chr1}\t{end}\tTXI_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,True)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXI_{str(idx)}\n")

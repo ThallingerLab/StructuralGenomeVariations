@@ -361,12 +361,15 @@ LoadAndScoreCalls <- function(metadata, truthdata, includeFiltered=FALSE, maxgap
 
 #' @param keytruth unique identifier of truthgr if it is not the 'natural' truth to compare to
 ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, maxgap, ignore.strand, sizemargin=0.25, id=NULL, requiredHits=1, keytruth=NULL, keycalls=NULL) {
-	if (length(callgr) == 0) {
+	
+  if (length(callgr) == 0) {
 		return(.ScoreVariantsFromTruthVCF(callgr, truthgr, includeFiltered, maxgap, ignore.strand, sizemargin, id %null% NA_character_, requiredHits))
-	}
+  }
+  
 	id <- id %null% callgr$Id[1]
 	key <- list(includeFiltered, maxgap, ignore.strand, sizemargin, id, requiredHits, keytruth, keycalls)
 	result <- loadCache(key=key, dirs=".Rcache/ScoreVariantsFromTruthVCF")
+	
 	if (is.null(result)) {
 		write(paste0("ScoreVariantsFromTruth ", id), stderr())
 		result <- .ScoreVariantsFromTruthVCF(callgr, truthgr, includeFiltered, maxgap, ignore.strand, sizemargin, id, requiredHits)
@@ -374,6 +377,7 @@ ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, ma
 	} else {
 		cat(".", file=stderr())
 	}
+	
 	return(result)
 }
 

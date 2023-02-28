@@ -1,7 +1,8 @@
 library(stringr)
 library(seqinr)
 library(VariantAnnotation)
-devtools::install("/home/veronika/Projects/StructuralVariantAnnotation/")
+library(dplyr)
+# devtools::install("/home/veronika/Projects/StructuralVariantAnnotation/")
 
 rootdir <- ifelse(as.character(Sys.info())[1] == "Windows", "H://Analyses/", "/Data/Analyses/")
 setwd(rootdir)
@@ -13,7 +14,7 @@ source(paste0(toolsdir,"StructuralGenomeVariations/evaluation/sv_benchmark.R"))
 #adapted from https://github.com/PapenfussLab/sv_benchmark/blob/master/R/sv_benchmark.R
 
 
-findBreakpointOverlaps()
+# findBreakpointOverlaps()
 
 # used only in na12878.R
 .distance <- function(r1, r2) {
@@ -24,10 +25,8 @@ findBreakpointOverlaps()
 
 ################################################################################
 
-
-
 all_callers <- c("bdmax",
-                 # "breseq",
+                 "breseq",
                  "delly",
                  "dysgu",
                  "gridss",
@@ -39,7 +38,7 @@ all_callers <- c("bdmax",
                  "wham")
 
 vcf_patterns <- c("bdmax\\.vcf$",
-                  # "output\\.vcf$",
+                  "output\\.vcf$",
                   "delly\\.vcf$",
                   "dysgu\\.vcf$",
                   "svs\\.vcf$",
@@ -57,24 +56,110 @@ names(vcf_patterns) <- all_callers
 ################################################################################
 #### SIMULATIONS
 
-truth_set <- loadTruthGR(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/20220819_bed/"))
+bedFolder <- "2022/202205_SV-SIM/accuracy_testing/20230223_bed_all/"
+vcfFolder <- "2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/"
 
-VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,"2022/202205_SV-SIM/accuracy_testing/20220819_svs/HSXn_f100_l150_m550_s165/"),x))
+truthSet <- loadTruthGR(paste0(rootdir,bedFolder))
 
+VcfCallMetadata <- lapply(vcf_patterns, function(x) ParseMetadata(paste0(rootdir,vcfFolder),x))
 
-AllResults <- lapply(VcfCallMetadata, function(metadata){
-  res <- list()
-  for(ind in 1:nrow(metadata)){
-    vcf <- readVcf(metadata$abs_file[ind])
-    sample_id <- metadata$sample[ind]
-    vcf_id <- paste("gridss",paste(metadata[ind,2:7], collapse = ":"), sep = ":")
+vcfCallSummary <- bind_rows(VcfCallMetadata, .id = "tool")
+
+vcfCallSubset <- vcfCallSummary[vcfCallSummary$readlength == 150 & 
+                                  vcfCallSummary$fragmentlength == 350 &
+                                  vcfCallSummary$fl_sd == 35 &
+                                  vcfCallSummary$coverage == 100 &
+                                  vcfCallSummary$machine == "HSXn", ]
+SubResults <- list()
+
+if(nrow(vcfCallSubset) > 0){
+  print(paste0("Analysing Directory: ", sub(rootdir,"", dirname(vcfCallSubset$abs_file[1])), ", has: ", nrow(vcfCallSubset), " entries."))
+  for(ind in 1:nrow(vcfCallSubset)){
+    vcf <- readVcf(vcfCallSubset$abs_file[ind])
+    sample_id <- vcfCallSubset$sample[ind]
+    # vcf_id <- paste("gridss",paste(metadata[ind,2:7], collapse = ":"), sep = ":")
+    vcf_id <- sub(rootdir,"", vcfCallSubset$abs_file[ind])
     
     test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
     
-    res <- c(res, ScoreVariantsFromTruthVCF(test_gr, truthgr = truth_set[[sample_id]], maxgap = 10, ignore.strand = T, id = vcf_id))
+    SubResults[[vcf_id]] <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], maxgap = 10, ignore.strand = T, id = vcf_id)
   }
-  return(res)
+}
+
+names(SubResults) <- sub(rootdir,"", vcfCallSubset$abs_file)
+
+vcfCallSubset$tp_c <- unlist(lapply(SubResults, function(res){
+  sum(res$calls$tp)
+}))
+
+vcfCallSubset$tp_t <- unlist(lapply(SubResults, function(res){
+  sum(res$truth$tp)
+}))
+
+vcfCallSubset$fp <- unlist(lapply(SubResults, function(res){
+  sum(res$calls$fp)
+}))
+
+vcfCallSubset$fn <- unlist(lapply(SubResults, function(res){
+  sum(res$truth$fn)
+}))
+
+vcfCallSubset$precision <- unlist(lapply(SubResults, function(res){
+  sum(res$calls$tp)/nrow(res$calls)
+}))
+
+vcfCallSubset$recall <- unlist(lapply(SubResults, function(res){
+  sum(res$truth$tp)/nrow(res$truth)
+}))
+
+vcfCallSubset[vcfCallSubset$precision == 1,]
+
+measures <- vcfCallSubset %>%                               # Summary by group using dplyr
+  group_by(tool) %>% 
+  summarize(rec = sum(tp_t)/(sum(tp_t)+sum(fn)),
+            pre = sum(tp_c)/(sum(tp_c)+sum(fp)))
+
+measures$f1 <- (measures$rec*measures$pre)/(measures$rec+measures$pre)
+
+
+RecallPerID <- lapply(unique(vcfCallSubset$sample), function(sample_id){
+  vcfIds <- sub(rootdir,"",vcfCallSubset$abs_file[vcfCallSubset$sample == sample_id])
+  
+  tpCall <- as.data.frame(bind_cols(lapply(SubResults[vcfIds], function(res){
+    res$truth$tp
+  })))
+  
+  rownames(tpCall) <- rownames(SubResults[vcfIds][[1]]$truth)
+  
+  tpCall$sumTP <- rowSums(tpCall)
+  
+  return(tpCall)
 })
+
+names(RecallPerID) <- unique(vcfCallSubset$sample)
+
+notCalled <- lapply(RecallPerID, function(x){
+  x$ID <- rownames(x)
+  return(x[x$sumTP == 0,c("ID","sumTP")])
+})
+
+notCalled
+
+#clearCache()
+
+# AllResults <- lapply(VcfCallMetadata, function(metadata){
+#   res <- list()
+#   for(ind in 1:nrow(metadata)){
+#     vcf <- readVcf(metadata$abs_file[ind])
+#     sample_id <- metadata$sample[ind]
+#     vcf_id <- paste("gridss",paste(metadata[ind,2:7], collapse = ":"), sep = ":")
+#     
+#     test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+#     
+#     res <- c(res, ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], maxgap = 10, ignore.strand = T, id = vcf_id))
+#   }
+#   return(res)
+# })
 
 
 #Formulas
@@ -88,13 +173,13 @@ vcf_id <- paste("gridss",paste(VcfCallMetadata$gridss[ind,2:7], collapse = ":"),
 
 test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
 
-test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truth_set[[sample_id]], maxgap = 100, ignore.strand = T, id = vcf_id)
+test_scores <- ScoreVariantsFromTruthVCF(test_gr,truthgr = truthSet[[sample_id]], maxgap = 100, ignore.strand = T, id = vcf_id)
 
 sum(test_scores$calls$tp+test_scores$calls$duptp)
 sum(test_scores$truth$tp)
 
 
-hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truth_set[[sample_id]], maxgap=100, ignore.strand=T, sizemargin=0.25))
+hits <- as.data.frame(findBreakpointOverlaps(test_gr,  truthSet[[sample_id]], maxgap=100, ignore.strand=T, sizemargin=0.25))
 
 test_gr[hits$queryHits]
 
