@@ -77,13 +77,13 @@ with open(in_file) as file:
         insertion = line[4]
 
         if sv_def == options_dict.get("del"):
-            vcf_file.write(f"{chr1}\t{start}\tDEL_{str(idx)}\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def}\n")
+            vcf_file.write(f"{chr1}\t{start}\tDEL_{str(idx)}\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=DEL_{str(idx)}\n")
         elif sv_def == options_dict.get("ins"):
-            vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}\tN\t<INS>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def}\n")
+            vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}\tN\t<INS>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
         elif sv_def == options_dict.get("inv"):
-            vcf_file.write(f"{chr1}\t{start}\tINV_{str(idx)}\tN\t<INV>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def}\n")
+            vcf_file.write(f"{chr1}\t{start}\tINV_{str(idx)}\tN\t<INV>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=INV_{str(idx)}\n")
         elif sv_def == options_dict.get("tdu"):
-            vcf_file.write(f"{chr1}\t{start}\tTDU_{str(idx)}\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def}\n")
+            vcf_file.write(f"{chr1}\t{start}\tTDU_{str(idx)}\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=TDU_{str(idx)}\n")
         elif sv_def == options_dict.get("itd"):
             vcf_file.write(f"{chr1}\t{end}\tITD_{str(idx)}a\tN\t{toVcfBreakend(chr1,end,True,chr1,end,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\n")
             vcf_file.write(f"{chr1}\t{start}\tITD_{str(idx)}b\tN\t{toVcfBreakend(chr1,start,False,chr1,end+1,True)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\n")

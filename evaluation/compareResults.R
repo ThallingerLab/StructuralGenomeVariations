@@ -145,6 +145,19 @@ notCalled <- lapply(RecallPerID, function(x){
 
 notCalled
 
+test_sample <- "SUBR-6"
+
+sub_test_vcf <- paste0("2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/",test_sample,"/gridss_100/svs.vcf")
+test_vcf <- readVcf(sub_test_vcf)
+test_gr <- c(breakpointRanges(test_vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+
+res <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[test_sample]], maxgap = 10, ignore.strand = T, id = vcf_id)
+
+findBreakpointOverlaps(test_gr, truthSet[[test_sample]], maxgap=10, ignore.strand=TRUE, sizemargin=10)
+
+query <- test_gr
+subject <- truthSet[[test_sample]]
+
 #clearCache()
 
 # AllResults <- lapply(VcfCallMetadata, function(metadata){
