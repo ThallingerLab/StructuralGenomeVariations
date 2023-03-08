@@ -57,7 +57,7 @@ names(vcf_patterns) <- all_callers
 #### SIMULATIONS
 
 bedFolder <- "2022/202205_SV-SIM/accuracy_testing/20230223_bed_all/"
-vcfFolder <- "2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/"
+vcfFolder <- "2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/MSv1_f100_l150_m350_s105/"
 
 truthSet <- loadTruthGR(paste0(rootdir,bedFolder))
 
@@ -67,9 +67,9 @@ vcfCallSummary <- bind_rows(VcfCallMetadata, .id = "tool")
 
 vcfCallSubset <- vcfCallSummary[vcfCallSummary$readlength == 150 & 
                                   vcfCallSummary$fragmentlength == 350 &
-                                  vcfCallSummary$fl_sd == 35 &
+                                  vcfCallSummary$fl_sd == 105 &
                                   vcfCallSummary$coverage == 100 &
-                                  vcfCallSummary$machine == "HSXn", ]
+                                  vcfCallSummary$machine == "MSv1", ]
 SubResults <- list()
 
 if(nrow(vcfCallSubset) > 0){
@@ -82,42 +82,85 @@ if(nrow(vcfCallSubset) > 0){
     
     test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
     
-    SubResults[[vcf_id]] <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], maxgap = 10, ignore.strand = T, id = vcf_id)
+    SubResults[[vcf_id]] <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], includeFiltered = T, sizemargin = NULL, maxgap = 10, ignore.strand = T, id = vcf_id)
   }
 }
 
 names(SubResults) <- sub(rootdir,"", vcfCallSubset$abs_file)
 
-vcfCallSubset$tp_c <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$tp_called_bp <- unlist(lapply(SubResults, function(res){
   sum(res$calls$tp)
 }))
 
-vcfCallSubset$tp_t <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$tp_called_sourceId <- unlist(lapply(SubResults, function(res){
+  sum((res$calls %>%                               # Summary by group using dplyr
+           group_by(sourceId) %>% 
+           summarize(tp = any(tp)))$tp)
+}))
+
+vcfCallSubset$tp_truth_bp <- unlist(lapply(SubResults, function(res){
   sum(res$truth$tp)
 }))
 
-vcfCallSubset$fp <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$tp_truth_sourceId <- unlist(lapply(SubResults, function(res){
+  sum((res$truth %>%                               # Summary by group using dplyr
+         group_by(sourceId) %>% 
+         summarize(tp = any(tp)))$tp)
+}))
+
+vcfCallSubset$fp_bp <- unlist(lapply(SubResults, function(res){
   sum(res$calls$fp)
 }))
 
-vcfCallSubset$fn <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$fp_sourceId <- unlist(lapply(SubResults, function(res){
+  sum((res$calls %>%                               # Summary by group using dplyr
+         group_by(sourceId) %>% 
+         summarize(fp = all(fp)))$fp)
+}))
+
+vcfCallSubset$fn_bp <- unlist(lapply(SubResults, function(res){
   sum(res$truth$fn)
 }))
 
-vcfCallSubset$precision <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$fp_sourceId <- unlist(lapply(SubResults, function(res){
+  sum((res$truth %>%                               # Summary by group using dplyr
+         group_by(sourceId) %>% 
+         summarize(fn = all(fn)))$fn)
+}))
+
+vcfCallSubset$precision_bp <- unlist(lapply(SubResults, function(res){
   sum(res$calls$tp)/nrow(res$calls)
 }))
 
-vcfCallSubset$recall <- unlist(lapply(SubResults, function(res){
+vcfCallSubset$recall_bp <- unlist(lapply(SubResults, function(res){
   sum(res$truth$tp)/nrow(res$truth)
 }))
 
-vcfCallSubset[vcfCallSubset$precision == 1,]
+vcfCallSubset$precision_sourceId <- unlist(lapply(SubResults, function(res){
+  so <- res$calls %>%                               # Summary by group using dplyr
+         group_by(sourceId) %>% 
+         summarize(tp = any(tp))
+  
+  return(sum(so$tp)/nrow(so))
+}))
+
+vcfCallSubset$recall_sourceId <- unlist(lapply(SubResults, function(res){
+  so <- res$truth %>%                               # Summary by group using dplyr
+    group_by(sourceId) %>% 
+    summarize(tp = any(tp))
+  
+  return(sum(so$tp)/nrow(so))
+}))
+
+vcfCallSubset[vcfCallSubset$precision_bp == 1,]
+
+vcfCallSubset[vcfCallSubset$precision_bp != vcfCallSubset$precision_sourceId,]
+
 
 measures <- vcfCallSubset %>%                               # Summary by group using dplyr
   group_by(tool) %>% 
-  summarize(rec = sum(tp_t)/(sum(tp_t)+sum(fn)),
-            pre = sum(tp_c)/(sum(tp_c)+sum(fp)))
+  summarize(rec = sum(tp_truth_bp)/(sum(tp_truth_bp)+sum(fn_bp)),
+            pre = sum(tp_called_bp)/(sum(tp_called_bp)+sum(fp_bp)))
 
 measures$f1 <- (measures$rec*measures$pre)/(measures$rec+measures$pre)
 
@@ -145,18 +188,26 @@ notCalled <- lapply(RecallPerID, function(x){
 
 notCalled
 
-test_sample <- "SUBR-6"
+test_sample <- "SUBKO-9"
+#test_sample <- "INSP-7"
 
 sub_test_vcf <- paste0("2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/",test_sample,"/gridss_100/svs.vcf")
+#sub_test_vcf <- paste0("2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/",test_sample,"/dysgu_100/dysgu.vcf")
+#sub_test_vcf <- paste0("2022/202205_SV-SIM/accuracy_testing/20230223_svs_all/HSXn_f100_l150_m350_s35/",test_sample,"/manta_100/results/variants/diploidSV.vcf.gz")
+
 test_vcf <- readVcf(sub_test_vcf)
-test_gr <- c(breakpointRanges(test_vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
+test_gr <- c(breakpointRanges(test_vcf, inferMissingBreakends=TRUE),breakendRanges(test_vcf))
 
 res <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[test_sample]], maxgap = 10, ignore.strand = T, id = vcf_id)
 
-findBreakpointOverlaps(test_gr, truthSet[[test_sample]], maxgap=10, ignore.strand=TRUE, sizemargin=10)
+findBreakpointOverlaps(test_gr, truthSet[[test_sample]], maxgap=10, ignore.strand=FALSE, sizemargin=0.25)
 
 query <- test_gr
 subject <- truthSet[[test_sample]]
+
+callgr <- test_gr
+truthgr <- truthSet[[test_sample]]
+
 
 #clearCache()
 

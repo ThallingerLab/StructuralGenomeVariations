@@ -71,11 +71,13 @@ def toVcfBreakend(localChr, localPos, localPositive, remoteChr, remotePos, remot
 
 with open(in_file) as file:
     tsv = csv.reader(file, delimiter="\t")
+    vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tCHR1\n")
     for idx, line in enumerate(tsv):
-        if line[0].startswith("#Chr1"):
-            vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\n")
-        elif line[0].startswith("#"):
-            vcf_file.write("#"+'\t'.join(line) + "\n")
+        #if line[0].startswith("#Chr1"):
+        #    vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\n")
+        if line[0].startswith("#"):
+            # vcf_file.write("#"+'\t'.join(line) + "\n")
+            print("Skipping header line:" + '\t'.join(line))
         else:
             sv_type = line[0]
             sv_id = line[1]

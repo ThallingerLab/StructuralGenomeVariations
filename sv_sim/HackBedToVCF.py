@@ -127,11 +127,11 @@ with open(in_file) as file:
             direction = inserts[3]
 
             if direction == "forward":
-                vcf_file.write(f"{chr1}\t{start}\tTCS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos1,True)}\t.\tPASS\tCHR2={chr2};END={pos1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
-                vcf_file.write(f"{chr1}\t{end}\tTCS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{start}\tTCS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,chr2,pos1,False)}\t.\tPASS\tCHR2={chr2};END={pos1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tTCS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,False,chr2,pos2+1,True)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
             else:
-                vcf_file.write(f"{chr1}\t{start}\tTCS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
-                vcf_file.write(f"{chr1}\t{end}\tTCS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos1,True)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCS_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{start}\tTCS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,chr2,pos2+1,True)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TSI_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tTCS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,False,chr2,pos1,False)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TSI_{str(idx)}\n")
         else:
             print("UNHANDLED VARIANT CALL: " + sv_def + " " + options_dict.get("tci"))
 

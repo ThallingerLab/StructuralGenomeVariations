@@ -401,7 +401,6 @@ ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, ma
 	if (is.null(truthgr$ihomlen)) {
 		truthgr$ihomlen <- rep(NA_integer_, length(truthgr))
 	}
-  
 	hits <- as.data.frame(findBreakpointOverlaps(callgr, truthgr, maxgap=maxgap, ignore.strand=ignore.strand, sizemargin=sizemargin))
 
 	hits$QUAL <- callgr$QUAL[hits$queryHits]
