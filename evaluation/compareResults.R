@@ -164,7 +164,6 @@ measures <- vcfCallSubset %>%                               # Summary by group u
 
 measures$f1 <- (measures$rec*measures$pre)/(measures$rec+measures$pre)
 
-
 RecallPerID <- lapply(unique(vcfCallSubset$sample), function(sample_id){
   vcfIds <- sub(rootdir,"",vcfCallSubset$abs_file[vcfCallSubset$sample == sample_id])
   
@@ -207,7 +206,6 @@ subject <- truthSet[[test_sample]]
 
 callgr <- test_gr
 truthgr <- truthSet[[test_sample]]
-
 
 #clearCache()
 
