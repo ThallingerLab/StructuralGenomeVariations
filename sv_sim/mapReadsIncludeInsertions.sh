@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:c:"
+OPTSTRING="hr:s:i:o:t:c:b:"
 
 usage()
 {
