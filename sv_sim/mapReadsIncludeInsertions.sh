@@ -122,6 +122,7 @@ do
         log_eval $PWD 'printf ">plasmid\n$PLASMID" | fold -80  > "${bed_dir}/${base}/${base}_plasmid.fasta"'
         log_eval $PWD "cat $ref ${fastqdir}/${base}/${base}_plasmid.fasta > $ref_plasmid"
 
+        log_eval $PWD  "$BWA index $ref_plasmid"
       fi
 
       ref="$ref_plasmid"
