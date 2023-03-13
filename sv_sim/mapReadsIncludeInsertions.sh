@@ -39,8 +39,8 @@ while getopts "$OPTSTRING" SWITCH; do
 		;;
 
     b) bed_dir="$OPTARG"
-    bed_dir=$(readlink -e "bed_dir")
-		echo "Bed directory = bed_dir"
+    bed_dir=$(readlink -e "$bed_dir")
+		echo "Bed directory = $bed_dir"
 		;;
 
 
