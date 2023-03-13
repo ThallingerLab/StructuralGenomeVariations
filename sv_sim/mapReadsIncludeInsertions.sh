@@ -23,10 +23,15 @@ while getopts "$OPTSTRING" SWITCH; do
 		echo "Settings = $settings"
 		;;
 
-    i) base_dir="$OPTARG"
-    base_dir=$(readlink -e "$base_dir")
-		echo "Basedir = $base_dir"
+    i) fasta_dir="$OPTARG"
+    fasta_dir=$(readlink -e "$fasta_dir")
+		echo "Fasta Directory = $fasta_dir"
 		;;
+
+#    i) base_dir="$OPTARG"
+#    base_dir=$(readlink -e "$base_dir")
+#		echo "Basedir = $base_dir"
+#		;;
 
     o) out_dir="$OPTARG"
     out_dir=$(readlink -e "$out_dir")
@@ -97,15 +102,7 @@ do
     mkdir $bamdir
   fi
 
-  if [ ! -d $fastqdir ]; then
-    mkdir $fastqdir
-  fi
-
-  if [ ! -d $svsdir ]; then
-    mkdir $svsdir
-  fi
-
-  for dir in "$base_dir"/*; do
+  for dir in "$fasta_dir"/*; do
 
     if [[ -d $dir ]]; then
       base=$(basename "$dir")
