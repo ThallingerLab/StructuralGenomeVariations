@@ -71,12 +71,14 @@ declare -a tools=("gridss" "manta" "lumpy" "delly" "bdmax" "softsv" "breseq")
 declare -a fractionOfReads=(25 50 75)
 seed=87
 
-if [ ! -d $out_dir/bam_plasmids ]; then
-	mkdir $out_dir/bam_plasmids
+base_in=$(basename "$fasta_dir")
+
+if [ ! -d "$out_dir/${base_in/fasta/bam}" ]; then
+	mkdir "$out_dir/${base_in/fasta/bam}"
 fi
 
-if [ ! -d $out_dir/svs_plasmids ]; then
-	mkdir $out_dir/svs_plasmids
+if [ ! -d "$out_dir/${base_in/fasta/svs_plasmids}" ]; then
+	mkdir "$out_dir/${base_in/fasta/svs_plasmids}"
 fi
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
@@ -88,8 +90,6 @@ do
 #  bamdir=$out_dir/bam_plasmids/$settings_string
 #  fastqdir=$out_dir/fastq/$settings_string
 #  svsdir=$out_dir/svs_plasmids/$settings_string
-
-  base_in=$(basename "$fasta_dir")
 
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
   bamdir=$out_dir/${base_in/fasta/bam_plasmids}/$settings_string
