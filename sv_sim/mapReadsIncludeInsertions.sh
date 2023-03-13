@@ -73,8 +73,8 @@ seed=87
 
 base_in=$(basename "$fasta_dir")
 
-if [ ! -d "$out_dir/${base_in/fasta/bam}" ]; then
-	mkdir "$out_dir/${base_in/fasta/bam}"
+if [ ! -d "$out_dir/${base_in/fasta/bam_plasmids}" ]; then
+	mkdir "$out_dir/${base_in/fasta/bam_plasmids}"
 fi
 
 if [ ! -d "$out_dir/${base_in/fasta/svs_plasmids}" ]; then
