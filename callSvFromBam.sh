@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:c:l:"
+OPTSTRING="hr:s:i:o:t:c:l:b:"
 
 usage()
 {
@@ -9,6 +9,7 @@ usage()
 
 declare SWITCH
 threads=8
+bam_base="NONE"
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do
@@ -26,6 +27,11 @@ while getopts "$OPTSTRING" SWITCH; do
     i) fasta_dir="$OPTARG"
     fasta_dir=$(readlink -e "$fasta_dir")
 		echo "Fasta Directory = $fasta_dir"
+		;;
+
+    b) bam_base="$OPTARG"
+    bam_base=$(readlink -e "$bam_base")
+		echo "Bam base Directory = $bam_base"
 		;;
 
     o) out_dir="$OPTARG"
@@ -74,7 +80,13 @@ do
   base_in=$(basename "$fasta_dir")
 
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
-  bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+
+  if [ $bam_base = "NONE" ]; then
+    bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+  else
+    bamdir=$bam_base/$settings_string
+  fi
+
   fastqdir=$out_dir/${base_in/fasta/fastq}/$settings_string
   svsdir=$out_dir/${base_in/fasta/svs}/$settings_string
 
