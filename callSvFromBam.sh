@@ -10,6 +10,7 @@ usage()
 declare SWITCH
 threads=8
 bam_base="NONE"
+ref="NONE"
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do
@@ -36,7 +37,7 @@ while getopts "$OPTSTRING" SWITCH; do
 
     o) out_dir="$OPTARG"
     out_dir=$(readlink -e "$out_dir")
-		echo "Outdir = $out_dir"
+		echo "Output directory = $out_dir"
 		;;
 
     t) tools_dir="$OPTARG"
@@ -115,6 +116,9 @@ do
       SAM="${bamdir}/${base}.sam"
       BAM_SORTED="${bamdir}/${base}.sorted.bam"
 
+      if [ $ref = "NONE" ]; then
+        ref=$bam_base/${base}_refPlasmid.fasta
+      fi
 
       echo "╔══════════════════════════════════════════════════════════════╗"
       echo "║                      starting SV analysis                    ║"
