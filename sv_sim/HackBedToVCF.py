@@ -3,7 +3,7 @@ from bed_maker_supplementary import *
 import sys
 import argparse
 import csv
-import os
+from Bio import SeqIO
 
 # adapted from : https://github.com/PapenfussLab/sv_benchmark/blob/master/breakdancer2vcf.py
 
@@ -14,17 +14,25 @@ if __name__ == '__main__':
                         help='file containing summary bed file')
     parser.add_argument('-r', '--reference', type=str, nargs='+',
                         help='base reference fasta')
-    parser.add_argument('-c', '--contigs', type=str, nargs='+',
-                        help='contigs and legths of contigs in form id:length')
+    parser.add_argument('-p', '--hasPlasmid', type=bool, nargs='?',
+                        const=True, default=False,
+                        help='indicate if ref has plasmids')
+    # parser.add_argument('-c', '--contigs', type=str, nargs='+',
+    #                     help='contigs and legths of contigs in form id:length')
     args = parser.parse_args()
 
 in_file = vars(args).get("inFile")[0]
+reference = vars(args).get("reference")[0]
+has_plasmids = vars(args).get("hasPlasmid")
+plasmid_length = 0
 
 print(args)
 
-if in_file is None:
+if in_file is None or reference is None:
     parser.print_help()
     sys.exit(1)
+
+import os
 
 vcf_path = in_file.replace(".bed",".vcf")
 
@@ -51,12 +59,22 @@ vcf_file.write("##INFO=<ID=MATEID,Number=1,Type=String,Description=\"ID of mate 
 
 vcf_file.write(f"##reference={vars(args).get('reference')[0]}\n")
 
-for cont in vars(args).get("contigs"):
-    conts = cont.split(":")
-    vcf_file.write(f"##contig=<ID={conts[0]},length={conts[1]}>\n")
+# for cont in vars(args).get("contigs"):
+#     conts = cont.split(":")
+#     vcf_file.write(f"##contig=<ID={conts[0]},length={conts[1]}>\n")
+
+referenceFile = open(reference, 'r')
+
+for rec in SeqIO.parse(referenceFile, 'fasta'):
+    name = rec.id
+    seq = rec.seq
+    seqLen = len(rec)
+    vcf_file.write(f"##contig=<ID={name},length={seqLen}>\n")
+    if has_plasmids and name == "plasmid":
+        plasmid_length = seqLen
+        print(plasmid_length)
 
 vcf_file.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tCHR1\n")
-
 def toVcfBreakend(localChr, localPos, localPositive, remoteChr, remotePos, remotePositive):
     if remotePositive:
         remote = "]" + remoteChr + ":" + str(remotePos) + "]"
@@ -79,11 +97,15 @@ with open(in_file) as file:
         if sv_def == options_dict.get("del"):
             vcf_file.write(f"{chr1}\t{start}\tDEL_{str(idx)}\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=DEL_{str(idx)}\n")
         elif sv_def == options_dict.get("ins"):
-            vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}\tN\t<INS>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
+            if has_plasmids:
+                vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,'plasmid',0,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tINS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,False,'plasmid',plasmid_length,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
+            else:
+                vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}\tN\t<INS>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=INS;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
         elif sv_def == options_dict.get("inv"):
-            vcf_file.write(f"{chr1}\t{start}\tINV_{str(idx)}\tN\t<INV>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=INV_{str(idx)}\n")
+            vcf_file.write(f"{chr1}\t{start}\tINV_{str(idx)}\tN\t<INV>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=INV;SV_DEF={sv_def};EVENT=INV_{str(idx)}\n")
         elif sv_def == options_dict.get("tdu"):
-            vcf_file.write(f"{chr1}\t{start}\tTDU_{str(idx)}\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DEL;SV_DEF={sv_def};EVENT=TDU_{str(idx)}\n")
+            vcf_file.write(f"{chr1}\t{start}\tTDU_{str(idx)}\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DUP;SV_DEF={sv_def};EVENT=TDU_{str(idx)}\n")
         elif sv_def == options_dict.get("itd"):
             vcf_file.write(f"{chr1}\t{end}\tITD_{str(idx)}a\tN\t{toVcfBreakend(chr1,end,True,chr1,end,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\n")
             vcf_file.write(f"{chr1}\t{start}\tITD_{str(idx)}b\tN\t{toVcfBreakend(chr1,start,False,chr1,end+1,True)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\n")
@@ -117,8 +139,12 @@ with open(in_file) as file:
                     vcf_file.write(f"{chr1}\t{start}\tCHR_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,chr2,pos2,True)}\t.\tPASS\tCHR2={chr2};END={pos2};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=CHR_{str(idx)}\n")
                     vcf_file.write(f"{chr1}\t{end+1}\tCHR_{str(idx)}b\tN\t{toVcfBreakend(chr1,end+1,False,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=CHR_{str(idx)}\n")
         elif sv_def == options_dict.get("sub"):
-            vcf_file.write(f"{chr1}\t{start}\tSUB_{str(idx)}a\tN\tN]{chr1}:{start}]\t.\tPASS\tCHR2={chr1};END={start};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
-            vcf_file.write(f"{chr1}\t{end}\tSUB_{str(idx)}b\tN\t[{chr1}:{end}[N\t.\tPASS\tCHR2={chr1};END={end};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
+            if has_plasmids:
+                vcf_file.write(f"{chr1}\t{start}\tSUB_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,'plasmid',0,False)}\t.\tPASS\tCHR2={chr1};END={start};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tSUB_{str(idx)}b\tN\t{toVcfBreakend(chr1,start,False,'plasmid',plasmid_length,True)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
+            else:
+                vcf_file.write(f"{chr1}\t{start}\tSUB_{str(idx)}a\tN\tN]{chr1}:{start}]\t.\tPASS\tCHR2={chr1};END={start};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tSUB_{str(idx)}b\tN\t[{chr1}:{end}[N\t.\tPASS\tCHR2={chr1};END={end};SVLEN=0;SVTYPE=BE;SV_DEF={sv_def};EVENT=SUB_{str(idx)}\n")
         elif sv_def == options_dict.get("tcs"):
             inserts = insertion.split(":")
             chr2 = inserts[1]
