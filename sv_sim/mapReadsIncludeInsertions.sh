@@ -16,6 +16,7 @@ while getopts "$OPTSTRING" SWITCH; do
 
 		r) ref="$OPTARG"
 		ref=$(readlink -e "$ref")
+		ref_orig=$ref
 		echo "Reference = $ref"
 		;;
 
@@ -116,8 +117,8 @@ do
 
         PLASMID=$(awk 'NR==1{print $5}' ${bed_dir}/${base}/${base}_summary.bed)
 
-        log_eval $PWD "printf \">plasmid\n$PLASMID\" | fold -80  > \"${bed_dir}/${base}/${base}_plasmid.fasta\""
-        log_eval $PWD "cat $ref ${bed_dir}/${base}/${base}_plasmid.fasta > $ref_plasmid"
+        log_eval $PWD "printf \">plasmid\n$PLASMID\" | fold -60 > \"${bed_dir}/${base}/${base}_plasmid.fasta\""
+        log_eval $PWD "cat $ref_orig ${bed_dir}/${base}/${base}_plasmid.fasta > $ref_plasmid"
 
         log_eval $PWD  "$BWA index $ref_plasmid"
       fi
