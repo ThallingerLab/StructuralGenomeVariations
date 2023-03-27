@@ -99,7 +99,7 @@ with open(in_file) as file:
         elif sv_def == options_dict.get("ins"):
             if has_plasmids:
                 vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,'plasmid',0,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
-                vcf_file.write(f"{chr1}\t{end}\tINS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,False,'plasmid',plasmid_length,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
+                vcf_file.write(f"{chr1}\t{end}\tINS_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,False,'plasmid',plasmid_length,True)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
             else:
                 vcf_file.write(f"{chr1}\t{start}\tINS_{str(idx)}\tN\t<INS>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=INS;SV_DEF={sv_def};EVENT=INS_{str(idx)}\n")
         elif sv_def == options_dict.get("inv"):
