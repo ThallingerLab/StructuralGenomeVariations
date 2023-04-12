@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OPTSTRING="hr:s:i:o:t:l:c:"
+OPTSTRING="hr:s:i:b:o:t:l:c:"
 
 usage()
 {
@@ -26,6 +26,11 @@ while getopts "$OPTSTRING" SWITCH; do
     i) fasta_dir="$OPTARG"
     fasta_dir=$(readlink -e "$fasta_dir")
 		echo "Fasta Directory = $fasta_dir"
+		;;
+
+    b) bam_base="$OPTARG"
+    bam_base=$(readlink -e "$bam_base")
+		echo "Bam base Directory = $bam_base"
 		;;
 
     o) out_dir="$OPTARG"
@@ -59,11 +64,12 @@ done
 source $tools_dir/log_eval.sh
 
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
+SEQTK="docker run -u 1001:1001 --name seqtk --rm -v $PWD:$PWD -w $PWD  pvstodghill/seqtk:1.3__2020-11-18 seqtk"
 
 tool="breseq"
-#declare -a fractionOfReads=(100 75 50 25)
+declare -a fractionOfReads=(100 75 50 25)
 #Calling the other fractions will not produce any junction calls this way
-declare -a fractionOfReads=(100)
+#declare -a fractionOfReads=(100)
 seed=87
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
@@ -75,7 +81,13 @@ do
   base_in=$(basename "$fasta_dir")
 
   settings_string="${settings_array[0]}_f${settings_array[1]}_l${settings_array[2]}_m${settings_array[3]}_s${settings_array[4]}"
-  bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+
+  if [ $bam_base = "NONE" ]; then
+    bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+  else
+    bamdir=$bam_base/$settings_string
+  fi
+
   fastqdir=$out_dir/${base_in/fasta/fastq}/$settings_string
   svsdir=$out_dir/${base_in/fasta/svs}/$settings_string
 
@@ -112,36 +124,45 @@ do
 
         for fraction in "${fractionOfReads[@]}"; do
 
-#          READ1_FILE_FRACTION=$READ1_FILE
-#          READ2_FILE_FRACTION=$READ2_FILE
-
           tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
           BAM_SORTED="$svsdir/$base/${tool}_100/data/reference.bam"
           BAM_FRACTION="NONE"
 
+          if [ $ref = "NONE" ]; then
+            ref=$bam_base/${base}_refPlasmid.fasta
+          fi
+
           echo "Fraction is: $fraction"
 
+          READ1_FILE_FRACTION=$READ1_FILE
+          READ2_FILE_FRACTION=$READ2_FILE
+
           if [ "$fraction" -ne 100 ]; then
-            BAM_FRACTION="${BAM_SORTED/.bam/-${fraction}.bam}"
+             READ1_FILE_FRACTION="${READ1_FILE/_1.fq.gz/_${fraction}_1.fq}"
+             READ2_FILE_FRACTION="${READ1_FILE/_2.fq.gz/_${fraction}_2.fq}"
 
-            echo "Downsampling to: $BAM_FRACTION"
-
-            log_eval $PWD "$SAMBAMBA sambamba view -h -t $threads -s 0.$fraction -f bam \
-              --subsampling-seed=$seed -o $BAM_FRACTION $BAM_SORTED"
+             log_eval $PWD "$SEQTK sample -s$seed $READ1_FILE 0.$fraction > $READ1_FILE_FRACTION" "$log"
+             log_eval $PWD "$SEQTK sample -s$seed $READ2_FILE 0.$fraction > $READ2_FILE_FRACTION" "$log"
           fi
+
 
           # For the sake of consistency
 
           if [ ! -d "$tool_outdir" ]; then
             mkdir "$tool_outdir"
-            if [ "$BAM_FRACTION" = "NONE" ]; then
-              export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
-            elif [ -s "$BAM_FRACTION" ]; then
-              export -f log_eval
-              log_eval $PWD "$tools_dir/$tool/breseq_bam.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
-            fi
+#           if [ "$BAM_FRACTION" = "NONE" ]; then
+
+            export -f log_eval
+            log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE_FRACTION $READ2_FILE_FRACTION $tool_outdir $threads $tools_dir $timing" "$log"
+
+            rm $READ1_FILE_FRACTION $READ2_FILE_FRACTION
+
+#           Does not call new junctions and is therefore useless for our purposes
+#            elif [ -s "$BAM_FRACTION" ]; then
+#              export -f log_eval
+#              log_eval $PWD "$tools_dir/$tool/breseq_bam.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
+#            fi
           fi
 
 #          if [ $fraction -ne 100 ]; then

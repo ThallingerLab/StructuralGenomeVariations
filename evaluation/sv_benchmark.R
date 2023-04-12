@@ -270,11 +270,21 @@ LoadMinimalSVFromVCF <- function(directory, pattern="*.vcf$", metadata=NULL, exi
 					ifelse(s1 < s2, s2 - e1, s1 - e2))))
 }
 # used only in na12878.R
+# .distance <- function(r1, r2) {
+#   return(data.frame(
+#     min=pmax(0, pmax(start(r1), start(r2)) - pmin(end(r1), end(r2))),
+#     max=pmax(end(r2) - start(r1), end(r1) - start(r2))
+#   ))
+# }
+
 .distance <- function(r1, r2) {
   return(data.frame(
     min=pmax(0, pmax(start(r1), start(r2)) - pmin(end(r1), end(r2))),
-    max=pmax(end(r2) - start(r1), end(r1) - start(r2))))
+    mean=abs((start(r1)+end(r1))/2-(start(r2)+end(r2))/2),
+    max=pmax(end(r2) - start(r1), end(r1) - start(r2))
+  ))
 }
+
 # used only in na12878.R
 findMatchingBreakpoints <- function(query, subject, maxgap=0L, ignore.strand=FALSE, sizemargin=0.25, restrictMarginToSizeMultiple=0.5) {
   hits <- as.data.frame(findBreakpointOverlaps(query, subject, maxgap=maxgap, ignore.strand=ignore.strand))
@@ -286,10 +296,12 @@ findMatchingBreakpoints <- function(query, subject, maxgap=0L, ignore.strand=FAL
   hits$sizeerror <- .distance(IRanges(start=callsize$min[hits$queryHits], end=callsize$max[hits$queryHits]),
                               IRanges(start=truthsize$min[hits$subjectHits], end=truthsize$max[hits$subjectHits]))$min
   # event sizes must be within sizemargin
-  hits <- hits[hits$sizeerror - 2 < sizemargin * pmin(callsize$max[hits$queryHits], truthsize$max[hits$subjectHits]),]
+  if (!is.null(sizemargin)) {
+    hits <- hits[hits$sizeerror - 2 < sizemargin * pmin(callsize$max[hits$queryHits], truthsize$max[hits$subjectHits]),]
+  }
   # further restrict breakpoint positions for small events
-  hits$localbperror <- .distance(query[hits$queryHits], subject[hits$subjectHits])$min
-  hits$remotebperror <- .distance(partner(query)[hits$queryHits], partner(subject)[hits$subjectHits])$min
+  hits$localbperror <- .distance(query[hits$queryHits], subject[hits$subjectHits])$mean
+  hits$remotebperror <- .distance(partner(query)[hits$queryHits], partner(subject)[hits$subjectHits])$mean
   if (!is.null(restrictMarginToSizeMultiple)) {
     allowablePositionError <- (pmin(callsize$max[hits$queryHits], truthsize$max[hits$subjectHits]) * restrictMarginToSizeMultiple + 2)
     hits <- hits[hits$localbperror <= allowablePositionError & hits$remotebperror <= allowablePositionError, ]
@@ -419,15 +431,18 @@ ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, ma
 			fp=rep(FALSE, nrow(.)),
 			fn=rep(FALSE, nrow(.)),
 			sizeerror=rep(NA, nrow(.)),
-			bperror=rep(NA, nrow(.)),
+			localbperror=NA,
+			remotebperror=NA,
 			includeFiltered=rep(includeFiltered, nrow(.)),
 			maxgap=rep(maxgap, nrow(.)),
 			ignore.strand=rep(ignore.strand, nrow(.)))
+	
 	calldf$tp[hitcount$queryHits[hitcount$besthits >= requiredHits]] <- TRUE
 	calldf$duptp[hitcount$queryHits[hitcount$allhits >= requiredHits]] <- TRUE
 	calldf$duptp <- calldf$duptp & !calldf$tp
 	calldf$fp <- !calldf$tp
-	#calldf$bperror[hits$queryHits] <- hits$localbperror
+	calldf$localbperror[hits$queryHits] <- hits$localbperror
+	calldf$remotebperror[hits$queryHits] <- hits$remotebperror
 	#calldf$sizeerror[hits$queryHits] <- hits$sizeerror
 	calldf$simpleEvent <- simpleEventType(callgr)
 	calldf$repeatClass <- callgr$repeatClass
@@ -437,7 +452,7 @@ ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, ma
 	if (requiredHits == 1) {
 		truthdf <- as.data.frame(truthgr) %>%
 			dplyr::select(svLen, insLen, sourceId, HOMLEN, ihomlen) %>%
-			mutate(Id=id, QUAL=0, tp=FALSE, fp=FALSE, fn=FALSE, sizeerror=NA, bperror=NA) %>%
+			mutate(Id=id, QUAL=0, tp=FALSE, fp=FALSE, fn=FALSE, localbperror=NA, remotebperror=NA) %>%
 			mutate(
 				includeFiltered=includeFiltered,
 				maxgap=maxgap,
@@ -445,7 +460,8 @@ ScoreVariantsFromTruthVCF <- function(callgr, truthgr, includeFiltered=FALSE, ma
 		truthdf$tp[hits$subjectHits] <- TRUE
 		truthdf$fn <- !truthdf$tp
 		truthdf$QUAL[hits$subjectHits] <- hits$QUAL
-		#truthdf$bperror[hits$subjectHits] <- hits$localbperror
+		truthdf$localbperror[hits$subjectHits] <- hits$localbperror
+		truthdf$remotebperror[hits$subjectHits] <- hits$remotebperror
 		#truthdf$sizeerror[hits$subjectHits] <- hits$sizeerror
 		truthdf$simpleEvent <- simpleEventType(truthgr)
 		truthdf$repeatClass <- truthgr$repeatClass
@@ -569,15 +585,22 @@ findBreakpointOverlaps <- function(query, subject, maxgap=-1L, minoverlap=0L, ig
     )$min
     # event sizes must be within sizemargin
     hits <- hits[sizeerror - 1 < sizemargin * pmin(callsize$max[S4Vectors::queryHits(hits)], truthsize$max[S4Vectors::subjectHits(hits)]),]
+    
     # further restrict breakpoint positions for small events
-    localbperror <- .distance(query[S4Vectors::queryHits(hits)], subject[S4Vectors::subjectHits(hits)])$min
-    remotebperror <- .distance(pquery[S4Vectors::queryHits(hits)], squery[S4Vectors::subjectHits(hits)])$min
     if (!is.null(restrictMarginToSizeMultiple)) {
+      localbperror <- .distance(query[S4Vectors::queryHits(hits)], subject[S4Vectors::subjectHits(hits)])$min
+      remotebperror <- .distance(pquery[S4Vectors::queryHits(hits)], squery[S4Vectors::subjectHits(hits)])$min
+      
       allowablePositionError <- (pmin(callsize$max[S4Vectors::queryHits(hits)], truthsize$max[S4Vectors::subjectHits(hits)]) * restrictMarginToSizeMultiple + 1)
       hits <- hits[localbperror <= allowablePositionError & remotebperror <= allowablePositionError, ]
     }
   }
-  return(hits)
+  
+  hits_frame <- as.data.frame(hits)
+  hits_frame$localbperror <- .distance(query[S4Vectors::queryHits(hits)], subject[S4Vectors::subjectHits(hits)])$mean
+  hits_frame$remotebperror <- .distance(pquery[S4Vectors::queryHits(hits)], squery[S4Vectors::subjectHits(hits)])$mean
+  
+  return(hits_frame)
 }
 # 
 # findBreakEndOverlaps <- function (query, subject, maxgap = -1L, minoverlap = 0L, ignore.strand = FALSE, 

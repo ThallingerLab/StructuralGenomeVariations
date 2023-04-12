@@ -17,11 +17,13 @@ source(paste0(toolsdir,"StructuralGenomeVariations/evaluation/sv_benchmark.R"))
 # findBreakpointOverlaps()
 
 # used only in na12878.R
-.distance <- function(r1, r2) {
-  return(data.frame(
-    min=pmax(0, pmax(start(r1), start(r2)) - pmin(end(r1), end(r2))),
-    max=pmax(end(r2) - start(r1), end(r1) - start(r2))))
-}
+# .distance <- function(r1, r2) {
+#   return(data.frame(
+#     min=pmax(0, pmax(start(r1), start(r2)) - pmin(end(r1), end(r2))),
+#     mean=abs(mean(start(r1),end(r1))-mean(start(r2),end(r2))),
+#     max=pmax(end(r2) - start(r1), end(r1) - start(r2))
+#     ))
+# }
 
 ################################################################################
 
@@ -73,16 +75,24 @@ vcfCallSubset <- vcfCallSummary[vcfCallSummary$readlength == 150 &
 SubResults <- list()
 
 if(nrow(vcfCallSubset) > 0){
+  
   print(paste0("Analysing Directory: ", sub(rootdir,"", dirname(vcfCallSubset$abs_file[1])), ", has: ", nrow(vcfCallSubset), " entries."))
+  
   for(ind in 1:nrow(vcfCallSubset)){
     vcf <- readVcf(vcfCallSubset$abs_file[ind])
     sample_id <- vcfCallSubset$sample[ind]
     # vcf_id <- paste("gridss",paste(metadata[ind,2:7], collapse = ":"), sep = ":")
     vcf_id <- sub(rootdir,"", vcfCallSubset$abs_file[ind])
+    maxgap = max(as.numeric(vcfCallSubset$readlength[ind]),
+                 (as.numeric(vcfCallSubset$fragmentlength)-as.numeric(vcfCallSubset$readlength[ind])*2))
     
     test_gr <- c(breakpointRanges(vcf, inferMissingBreakends=TRUE),breakendRanges(vcf))
     
-    SubResults[[vcf_id]] <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], includeFiltered = T, sizemargin = NULL, maxgap = 10, ignore.strand = T, id = vcf_id)
+    SubResults[[vcf_id]] <- ScoreVariantsFromTruthVCF(test_gr, truthgr = truthSet[[sample_id]], 
+                                                     includeFiltered = T, sizemargin = NULL, 
+                                                     maxgap = maxgap ,
+                                                     ignore.strand = F,
+                                                     id = vcf_id)
   }
 }
 
