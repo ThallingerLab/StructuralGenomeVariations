@@ -131,7 +131,8 @@ do
           tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
           BAM_SORTED="$svsdir/$base/${tool}_100/data/reference.bam"
-#          BAM_FRACTION="NONE"
+          #LEAVE THIS FOR CONSISTENCY!!!!
+          BAM_FRACTION="NONE"
 
           echo "Fraction is: $fraction"
 
