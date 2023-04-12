@@ -9,6 +9,8 @@ usage()
 
 declare SWITCH
 threads=8
+bam_base="NONE"
+ref="NONE"
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do
