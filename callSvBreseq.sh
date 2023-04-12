@@ -116,6 +116,10 @@ do
       READ1_FILE="${fastqdir}/${base}_1.fq.gz"
       READ2_FILE="${fastqdir}/${base}_2.fq.gz"
 
+      if [ "$ref" = "NONE" ]; then
+        ref="$bam_base/${base}_refPlasmid.fasta"
+      fi
+
       echo "╔══════════════════════════════════════════════════════════════╗"
       echo "║                      starting SV analysis                    ║"
       echo "╚══════════════════════════════════════════════════════════════╝"
@@ -127,11 +131,7 @@ do
           tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
           BAM_SORTED="$svsdir/$base/${tool}_100/data/reference.bam"
-          BAM_FRACTION="NONE"
-
-          if [ $ref = "NONE" ]; then
-            ref=$bam_base/${base}_refPlasmid.fasta
-          fi
+#          BAM_FRACTION="NONE"
 
           echo "Fraction is: $fraction"
 
