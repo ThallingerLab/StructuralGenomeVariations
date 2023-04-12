@@ -156,7 +156,9 @@ do
             export -f log_eval
             log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE_FRACTION $READ2_FILE_FRACTION $tool_outdir $threads $tools_dir $timing" "$log"
 
-            rm $READ1_FILE_FRACTION $READ2_FILE_FRACTION
+            if [ "$fraction" -ne 100 ]; then
+              rm $READ1_FILE_FRACTION $READ2_FILE_FRACTION
+            fi
 
 #           Does not call new junctions and is therefore useless for our purposes
 #            elif [ -s "$BAM_FRACTION" ]; then
