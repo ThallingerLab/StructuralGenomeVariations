@@ -28,8 +28,8 @@ if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
    log_eval $PWD "cat $CLOVE_VCF.temp | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1V -k2,2n"}' > $CLOVE_VCF"
 fi
 
-START=$(docker inspect --format='{{.State.StartedAt}}' gridss)
-STOP=$(docker inspect --format='{{.State.FinishedAt}}' gridss)
+START=$(docker inspect --format='{{.State.StartedAt}}' clove)
+STOP=$(docker inspect --format='{{.State.FinishedAt}}' clove)
 
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
