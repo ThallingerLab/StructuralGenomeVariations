@@ -22,7 +22,8 @@ if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
    -i $GRIDSS_VCF GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \
-   -o ${CLOVE_VCF}.temp \   -r 25000"
+   -o ${CLOVE_VCF}.temp \
+   -r 25000"
 
   START=$(docker inspect --format='{{.State.StartedAt}}' clove)
   STOP=$(docker inspect --format='{{.State.FinishedAt}}' clove)
