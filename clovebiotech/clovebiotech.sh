@@ -34,6 +34,7 @@ STOP=$(docker inspect --format='{{.State.FinishedAt}}' gridss)
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
 
+
 FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 docker container rm clove
