@@ -22,23 +22,23 @@ if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
    -i $GRIDSS_VCF GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \
-   -o ${CLOVE_VCF}.temp \
-   -r 25000"
+   -o ${CLOVE_VCF}.temp \   -r 25000"
 
-   log_eval $PWD "cat $CLOVE_VCF.temp | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1V -k2,2n"}' > $CLOVE_VCF"
+  START=$(docker inspect --format='{{.State.StartedAt}}' clove)
+  STOP=$(docker inspect --format='{{.State.FinishedAt}}' clove)
+
+  START_TIMESTAMP=$(date --date=$START +%s)
+  STOP_TIMESTAMP=$(date --date=$STOP +%s)
+
+
+  FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
+
+  docker container rm clove
+
+  cat $CLOVE_VCF.temp | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1V -k2,2n"}' > $CLOVE_VCF
+
+  echo final time: $FTIME seconds 2>&1
+  echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
+
 fi
-
-START=$(docker inspect --format='{{.State.StartedAt}}' clove)
-STOP=$(docker inspect --format='{{.State.FinishedAt}}' clove)
-
-START_TIMESTAMP=$(date --date=$START +%s)
-STOP_TIMESTAMP=$(date --date=$STOP +%s)
-
-
-FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
-
-docker container rm clove
-
-echo final time: $FTIME seconds 2>&1
-echo -e "${outdir}\t${FTIME}" | tee -a "$timing"
 
