@@ -11,22 +11,21 @@ threads="$6"
 tools_dir="$7"
 timing="$8"
 
-CLOVE_VCF="$outdir/clovebiotech.vcf"
+CLOVE_VCF="$outdir/clove.vcf"
 GRIDSS_VCF="${outdir/clovebiotech/gridss}/svs.vcf"
 DELLY_VCF="${outdir/clovebiotech/delly}/delly.vcf"
 
-CLOVE="/app/custom_scripts/clovebiotech_v1.0.1.jar"
+CLOVE="/bin/clove-0.17-jar-with-dependencies.jar"
 
 if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
-  log_eval $PWD "docker run --name=clovebiotech -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
+  log_eval $PWD "docker run --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
    -i $GRIDSS_VCF GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \
-   -o ${CLOVE_VCF}.temp \
-   -r 25000"
+   -o ${CLOVE_VCF}.temp"
 
-  START=$(docker inspect --format='{{.State.StartedAt}}' clovebiotech)
-  STOP=$(docker inspect --format='{{.State.FinishedAt}}' clovebiotech)
+  START=$(docker inspect --format='{{.State.StartedAt}}' clove)
+  STOP=$(docker inspect --format='{{.State.FinishedAt}}' clove)
 
   START_TIMESTAMP=$(date --date=$START +%s)
   STOP_TIMESTAMP=$(date --date=$STOP +%s)
@@ -34,7 +33,7 @@ if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
 
   FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
-  docker container rm clovebiotech
+  docker container rm clove
 
   cat $CLOVE_VCF.temp | awk '$1 ~ /^#/ {print $0;next} {print $0 | "sort -k1,1V -k2,2n"}' > $CLOVE_VCF
 
