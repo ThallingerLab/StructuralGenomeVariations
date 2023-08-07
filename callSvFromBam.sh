@@ -84,12 +84,13 @@ do
 
   if [ $bam_base = "NONE" ]; then
     bamdir=$out_dir/${base_in/fasta/bam}/$settings_string
+    svsdir=$out_dir/${base_in/fasta/svs}/$settings_string
   else
     bamdir=$bam_base/$settings_string
+    svsdir=${bam_base/bam/svs}/$settings_string
   fi
 
   fastqdir=$out_dir/${base_in/fasta/fastq}/$settings_string
-  svsdir=$out_dir/${base_in/fasta/svs}/$settings_string
 
   timing=${svsdir}/${stamp}_timing.tsv
   log=${svsdir}/${stamp}_sv_calling.log
