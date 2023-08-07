@@ -17,9 +17,11 @@ DELLY_VCF="${outdir/clove/delly}/delly.vcf"
 
 CLOVE="/bin/clove-0.17-jar-with-dependencies.jar"
 
+egrep '^#|\[|\]' $GRIDSS_VCF > ${GRIDSS_VCF/svs/svs_filtered}
+
 if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
   log_eval $PWD "docker run --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
-   -i $GRIDSS_VCF GRIDSS \
+   -i ${GRIDSS_VCF/svs/svs_filtered} GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \
    -o ${CLOVE_VCF}.temp"
