@@ -98,8 +98,9 @@ do
   echo "THIS IS the DIRECTORY: $bamdir"
 
   if [ ! -d $svsdir ]; then
-    mkdir $svsdir
+    mkdir -m 777 $svsdir
   fi
+
   touch $timing
   touch $log
 
@@ -109,7 +110,7 @@ do
       base=$(basename "$dir")
 
       if [ ! -d $svsdir/$base ]; then
-        mkdir $svsdir/$base
+        mkdir -m 777 $svsdir/$base
       fi
 
       READ1_FILE="${fastqdir}/${base}_1.fq.gz"
@@ -142,7 +143,7 @@ do
             tool_outdir="$svsdir/$base/${tool}_${fraction}"
 
             if [ ! -d "$tool_outdir" ]; then
-              mkdir "$tool_outdir"
+              mkdir -m 777 "$tool_outdir"
 
               export -f log_eval
               log_eval $PWD "$tools_dir/$tool/${tool}.sh $BAM_FRACTION $ref $READ1_FILE $READ2_FILE $tool_outdir $threads $tools_dir $timing" "$log"
