@@ -12,7 +12,13 @@ DELLY=/bin/delly_v0.7.9_parallel_linux_x86_64bit
 
 log_eval $PWD "docker run --name=delly_0.7.9 -v $(pwd)/:$(pwd) -w $outdir vrohnie/delly:v0.7.9 $DELLY call \
   -g $fasta \
-  $bam > $outdir/delly_0.7.9.vcf"
+  -o $outdir/delly_0.7.9.bcf \
+  $bam"
+
+log_eval $PWD "docker run --name=delly_0.7.9 -v $(pwd)/:$(pwd) -w $outdir biocontainers/bcftools:v1.9-1-deb_cv1 \
+  bcftools convert \
+  -O v -o $outdir/delly_0.7.9.vcf \
+  $outdir/delly_0.7.9.bcf"
 
 START=$(docker inspect --format='{{.State.StartedAt}}' delly_0.7.9)
 STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly_0.7.9)

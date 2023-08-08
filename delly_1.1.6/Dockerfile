@@ -35,7 +35,7 @@ ENV BOOST_ROOT /usr
 # install delly_1.1.6
 RUN cd /bin && \
     wget https://github.com/dellytools/delly/releases/download/v1.1.6/delly_v1.1.6_linux_x86_64bit && \
-    chmod 777 delly_v1.1.6_linux_x86_64bit \
+    chmod 777 delly_v1.1.6_linux_x86_64bit
 
 # Workdir
 WORKDIR /root/
