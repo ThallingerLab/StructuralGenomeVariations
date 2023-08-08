@@ -18,7 +18,7 @@ DELLY_VCF="${outdir/clovebiotech/delly_0.7.9}/delly_0.7.9.vcf"
 CLOVE="/app/custom_scripts/clovebiotech_v1.0.1.jar"
 
 if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
-  log_eval $PWD "docker run --name=clovebiotech -v $(pwd):$(pwd) -w $outdir vrohnie/micronap:v1.2.4 java -jar $CLOVE \
+  log_eval $PWD "docker run --user 0:0 --name=clovebiotech -v $(pwd):$(pwd) -w $outdir vrohnie/micronap:v1.2.4 java -jar $CLOVE \
    -i $GRIDSS_VCF GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \

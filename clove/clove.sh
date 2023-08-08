@@ -21,7 +21,7 @@ if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
 
   log_eval "egrep '^#|\[|\]' $GRIDSS_VCF > ${GRIDSS_VCF/svs/svs_filtered}"
 
-  log_eval $PWD "docker run --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
+  log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
    -i ${GRIDSS_VCF/svs/svs_filtered} GRIDSS \
    -i $DELLY_VCF DELLY2 \
    -b $bam \
