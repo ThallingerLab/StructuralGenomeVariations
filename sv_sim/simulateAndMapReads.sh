@@ -59,7 +59,7 @@ ART="art_illumina"
 SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clinicalgenomics/sambamba:0.8.0"
 BWA="docker run -u 1001:1001 --name bwa --rm -v $PWD:$PWD -w $PWD mskcc/bwa_mem:0.7.12 bwa"
 
-#declare -a scripts=("bdmax" "delly" "gridss" "lumpy" "manta" "softsv" "breseq")
+#declare -a scripts=("bdmax" "delly_1.1.6" "gridss" "lumpy" "manta" "softsv" "breseq")
 
 declare -a tools=("gridss" "manta" "lumpy" "delly" "bdmax" "softsv" "breseq")
 declare -a fractionOfReads=(25 50 75)

@@ -13,7 +13,7 @@ timing="$8"
 
 CLOVE_VCF="$outdir/clovebiotech.vcf"
 GRIDSS_VCF="${outdir/clovebiotech/gridss}/svs.vcf"
-DELLY_VCF="${outdir/clovebiotech/delly}/delly.vcf"
+DELLY_VCF="${outdir/clovebiotech/delly_0.7.9}/delly_0.7.9.vcf"
 
 CLOVE="/app/custom_scripts/clovebiotech_v1.0.1.jar"
 

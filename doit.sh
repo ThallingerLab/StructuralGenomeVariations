@@ -9,7 +9,7 @@ docker kill $(docker ps -q)
 docker rm $(docker ps -a -q)
 
 declare -a tools=("bdmax" "delly" "gridss" "lumpy" "manta" "softsv" "breseq")
-#("bdmax" "breseq" "delly" "gridss" "lumpy" "manta" "metasv" "softsv")
+#("bdmax" "breseq" "delly_1.1.6" "gridss" "lumpy" "manta" "metasv" "softsv")
 
 dir="$(pwd)"
 

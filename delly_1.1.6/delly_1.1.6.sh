@@ -8,12 +8,14 @@ threads="$6"
 tools_dir="$7"
 timing="$8"
 
-log_eval $PWD "docker run --name=delly -v $(pwd)/:$(pwd) -w $outdir dellytools/delly delly call \
-  -g $fasta \
-  $bam > $outdir/delly.vcf"
+DELLY=/bin/delly_v1.1.6_linux_x86_64bit
 
-START=$(docker inspect --format='{{.State.StartedAt}}' delly)
-STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly)
+log_eval $PWD "docker run --name=delly_1.1.6 -v $(pwd)/:$(pwd) -w $outdir vrohnie/delly:v1.1.6 $DELLY call \
+  -g $fasta \
+  $bam > $outdir/delly_1.1.6.vcf"
+
+START=$(docker inspect --format='{{.State.StartedAt}}' delly_1.1.6)
+STOP=$(docker inspect --format='{{.State.FinishedAt}}' delly_1.1.6)
 
 START_TIMESTAMP=$(date --date=$START +%s)
 STOP_TIMESTAMP=$(date --date=$STOP +%s)
@@ -22,9 +24,9 @@ FTIME=$(($STOP_TIMESTAMP-$START_TIMESTAMP))
 
 echo first time: "$FTIME"
 
-docker container rm delly
+docker container rm delly_1.1.6
 
-#docker run --name=bcftools -v $(pwd)/delly/output/:/in/ -w /in/ halllab/bcftools:v1.9 bcftools view -i'FILTER="PASS" && MAPQ>40 && (PE>5 || SR>5)' delly_output_"$stamp".vcf > ./delly/output/delly_output_BCFTOOLS_"$stamp".vcf.vcf
+#docker run --name=bcftools -v $(pwd)/delly_1.1.6/output/:/in/ -w /in/ halllab/bcftools:v1.9 bcftools view -i'FILTER="PASS" && MAPQ>40 && (PE>5 || SR>5)' delly_output_"$stamp".vcf > ./delly_1.1.6/output/delly_output_BCFTOOLS_"$stamp".vcf.vcf
 
 #START=$(docker inspect --format='{{.State.StartedAt}}' bcftools)
 #STOP=$(docker inspect --format='{{.State.FinishedAt}}' bcftools)

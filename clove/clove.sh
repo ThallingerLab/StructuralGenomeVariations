@@ -13,13 +13,14 @@ timing="$8"
 
 CLOVE_VCF="$outdir/clove.vcf"
 GRIDSS_VCF="${outdir/clove/gridss}/svs.vcf"
-DELLY_VCF="${outdir/clove/delly}/delly.vcf"
+DELLY_VCF="${outdir/clove/delly_0.7.9}/delly_0.7.9.vcf"
 
 CLOVE="/bin/clove-0.17-jar-with-dependencies.jar"
 
-egrep '^#|\[|\]' $GRIDSS_VCF > ${GRIDSS_VCF/svs/svs_filtered}
-
 if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
+
+  log_eval "egrep '^#|\[|\]' $GRIDSS_VCF > ${GRIDSS_VCF/svs/svs_filtered}"
+
   log_eval $PWD "docker run --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
    -i ${GRIDSS_VCF/svs/svs_filtered} GRIDSS \
    -i $DELLY_VCF DELLY2 \
