@@ -13,17 +13,19 @@ timing="$8"
 
 CLOVE_VCF="$outdir/clovebiotech.vcf"
 GRIDSS_VCF="${outdir/clovebiotech/gridss}/svs.vcf"
-DELLY_VCF="${outdir/clovebiotech/delly_0.7.9}/delly_0.7.9.vcf"
+#DELLY_VCF="${outdir/clovebiotech/delly_1.1.6}/delly_1.1.6.vcf"
 
 CLOVE="/app/custom_scripts/clovebiotech_v1.0.1.jar"
 
-if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
+#if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
+if [ -s "$GRIDSS_VCF" ]; then
   log_eval $PWD "docker run --user 0:0 --name=clovebiotech -v $(pwd):$(pwd) -w $outdir vrohnie/micronap:v1.2.4 java -jar $CLOVE \
    -i $GRIDSS_VCF GRIDSS \
-   -i $DELLY_VCF DELLY2 \
    -b $bam \
    -o ${CLOVE_VCF}.temp \
    -r 25000"
+
+#   -i $DELLY_VCF DELLY2 \
 
   START=$(docker inspect --format='{{.State.StartedAt}}' clovebiotech)
   STOP=$(docker inspect --format='{{.State.FinishedAt}}' clovebiotech)
