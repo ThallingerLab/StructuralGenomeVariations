@@ -21,10 +21,17 @@ CLOVE="/bin/clove-0.17-jar-with-dependencies.jar"
 if [ -s "$GRIDSS_VCF" ]; then
   log_eval $PWD "egrep '^#|\[|\]' $GRIDSS_VCF > ${GRIDSS_VCF/svs/svs_filtered}"
 
+  # shellcheck disable=SC1065
+  dp=$(basename $outdir)
+  dp=${dp/clove_/}
+
+  dp_std=$(echo "scale=2 ; $dp / 5" | bc)
+
   log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.17 java -jar $CLOVE \
    -i ${GRIDSS_VCF/svs/svs_filtered} GRIDSS \
    -b $bam \
-   -o ${CLOVE_VCF}.temp"
+   -o ${CLOVE_VCF}.temp \
+   -c $dp $dp_std"
 #   -i $DELLY_VCF DELLY2 \
 
   START=$(docker inspect --format='{{.State.StartedAt}}' clove)
