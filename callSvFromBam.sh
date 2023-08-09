@@ -18,6 +18,12 @@ while getopts "$OPTSTRING" SWITCH; do
 
 		r) ref="$OPTARG"
 		ref=$(readlink -e "$ref")
+		getref="FALSE"
+
+    if [ $ref = "NONE" ]; then
+      getref="TRUE"
+    fi
+
 		echo "Reference = $ref"
 		;;
 
@@ -118,7 +124,7 @@ do
       SAM="${bamdir}/${base}.sam"
       BAM_SORTED="${bamdir}/${base}.sorted.bam"
 
-      if [ $ref = "NONE" ]; then
+      if [ $getref = "TRUE" ]; then
         ref=$bam_base/${base}_refPlasmid.fasta
       fi
 
