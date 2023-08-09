@@ -11,6 +11,7 @@ declare SWITCH
 threads=8
 bam_base="NONE"
 ref="NONE"
+getref="FALSE"
 
 # Examine individual options
 while getopts "$OPTSTRING" SWITCH; do
@@ -18,11 +19,6 @@ while getopts "$OPTSTRING" SWITCH; do
 
 		r) ref="$OPTARG"
 		ref=$(readlink -e "$ref")
-		getref="FALSE"
-
-    if [ $ref = "NONE" ]; then
-      getref="TRUE"
-    fi
 
 		echo "Reference = $ref"
 		;;
@@ -77,6 +73,12 @@ SAMBAMBA="docker run -u 1001:1001 --name sambamba --rm -v $PWD:$PWD -w $PWD clin
 declare -a fractionOfReads=(100 75 50 25)
 
 seed=87
+
+# IF no reference was defined get it from path
+if [ $ref = "NONE" ]; then
+  getref="TRUE"
+fi
+
 
 stamp="$(date +'%Y_%d_%m-%H_%M_%S')"
 org="CBS7435"
