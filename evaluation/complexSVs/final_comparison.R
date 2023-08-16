@@ -159,9 +159,11 @@ dev.off()
 
 comparSummary$recall <- comparSummary$TP/comparSummary$ntrue
 comparSummary$precion <- comparSummary$TP/comparSummary$ncalled
+comparSummary$fscore <- 2*(comparSummary$recall*comparSummary$precion)/(comparSummary$recall+comparSummary$precion)
 
 comparSummary[order(-comparSummary$precion),]
 comparSummary[order(-comparSummary$recall),]
+comparSummary[order(-comparSummary$fscore),]
 
 
 comparSummaryCBR <- comparSummary[comparSummary$pass == "raw" & comparSummary$tool == "clovebiotech",]
@@ -250,5 +252,8 @@ t.test(x = plasmidSummaries$precion[plasmidSummaries$tool == "clovebiotech" & pl
 
 t.test(x = plasmidSummaries$recall[plasmidSummaries$tool == "clovebiotech" & plasmidSummaries$plasmid], 
        y = plasmidSummaries$recall[plasmidSummaries$tool == "clovebiotech" & !plasmidSummaries$plasmid], alternative = "greater")
+
+wilcox.test(recall~plasmid, data = plasmidSummaries[plasmidSummaries$tool == "clovebiotech",] , exact = FALSE, correct = FALSE, conf.int = FALSE)
+wilcox.test(precion~plasmid, data = plasmidSummaries[plasmidSummaries$tool == "clovebiotech",] , exact = FALSE, correct = FALSE, conf.int = FALSE)
 
 dev.off()
