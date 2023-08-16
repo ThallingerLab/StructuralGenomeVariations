@@ -16,7 +16,7 @@ GRIDSS_VCF="${outdir/clove/gridss}/svs.vcf"
 GRIDSS_Filtered_VCF="${outdir/clove/gridss}/svs_filtered.vcf"
 DELLY_VCF="${outdir/clove/delly_0.7.9}/delly_0.7.9.vcf"
 
-CLOVE="/bin/clove-0.17-jar-with-dependencies.jar"
+CLOVE="/bin/clove-0.16-jar-with-dependencies.jar"
 
 #if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
 if [ -s "$GRIDSS_VCF" ]; then
