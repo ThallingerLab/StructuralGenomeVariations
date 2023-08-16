@@ -48,14 +48,14 @@ done
 
 source "$tools_dir"/log_eval.sh
 
-if [ -s $basefolder -a -s $callfolder ]; then
+if [ -d $basefolder -a -d $callfolder ]; then
 
   for base in  "$basefolder"/*/*summary.bed; do
 
     type=$(basename $base)
     type=${type/_summary.bed/}
 
-    for call in "${callfolder}/${type}/${tool}"*/${tool}.vcf; do
+    for call in "${callfolder}"/*/"${type}/${tool}"*/${tool}.vcf; do
 
       call_dir=$(dirname $call)
 
@@ -75,26 +75,26 @@ if [ -s $basefolder -a -s $callfolder ]; then
           log_eval $PWD "egrep '^#|PASS' $call > $call_pass"
         fi
 
-        if [ $plasmid=="TRUE" ]; then
-          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/vcfSherlock.py \
+        if [ $plasmid == "TRUE" ]; then
+          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/complexSVs/vcfSherlock.py \
           -b $basefolder/${type}/${type}_summary.bed \
           -v $call \
-          -f $call_dir/all -d 100 -s $basefolder/summary.tsv -p"
+          -f $call_dir/all -d 100 -s $basefolder/summary-$tool.tsv -p"
 
-          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/vcfSherlock.py \
+          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/complexSVs/vcfSherlock.py \
           -b $basefolder/${type}/${type}_summary.bed \
           -v $call_pass \
-          -f $call_dir/pass -d 100 -s $basefolder/summary.tsv -p"
+          -f $call_dir/pass -d 100 -s $basefolder/summary-$tool.tsv -p"
         else
-          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/vcfSherlock.py \
+          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/complexSVs/vcfSherlock.py \
           -b $basefolder/${type}/${type}_summary.bed \
           -v $call \
-          -f $call_dir/all -d 100 -s $basefolder/summary.tsv"
+          -f $call_dir/all -d 100 -s $basefolder/summary-$tool.tsv"
 
-          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/vcfSherlock.py \
+          log_eval $PWD "python3.8 ~/Projects/StructuralGenomeVariations/evaluation/complexSVs/vcfSherlock.py \
           -b $basefolder/${type}/${type}_summary.bed \
           -v $call_pass \
-          -f $call_dir/pass -d 100 -s $basefolder/summary.tsv"
+          -f $call_dir/pass -d 100 -s $basefolder/summary-$tool.tsv"
         fi
 
       fi

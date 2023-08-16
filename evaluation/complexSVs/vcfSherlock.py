@@ -99,10 +99,14 @@ def matches(bedNode, vcfNode, max_dist):
     :rtype: bool
     """
 
-    bedNode_min = min(int(bedNode[1]), int(bedNode[2]))
-    bedNode_max = max(int(bedNode[1]), int(bedNode[2]))
-    vcfNode_min = min(int(vcfNode[1]), int(vcfNode[2]))
-    vcfNode_max = max(int(vcfNode[1]), int(vcfNode[2]))
+    # If values contain uncoercible objects or NaN return False
+    try:
+        bedNode_min = min(int(bedNode[1]), int(bedNode[2]))
+        bedNode_max = max(int(bedNode[1]), int(bedNode[2]))
+        vcfNode_min = min(int(vcfNode[1]), int(vcfNode[2]))
+        vcfNode_max = max(int(vcfNode[1]), int(vcfNode[2]))
+    except ValueError:
+        return False
 
     if bedNode[0] == vcfNode[0]:
         if vcfNode_min - max_dist < bedNode_min < vcfNode_min + max_dist and vcfNode_max - max_dist < bedNode_max < vcfNode_max + max_dist:
@@ -119,8 +123,9 @@ def matches(bedNode, vcfNode, max_dist):
 # vcf_in = "/Data/Analyses/2023/202308_CloveBiotech/20220819_svs/DEL-1/clovebiotech_100/clovebiotech.vcf"
 
 vcf = read_vcf(vcf_in)
-info_strings = '{"' + vcf.INFO.str.replace('CHR2=;', 'CHR2=None;').str.split(';').str.join('","').str.replace('=',
-                                                                                                              '":"').str.replace(
+info_strings = '{"' + vcf.INFO.str.replace('CHR2=;', 'CHR2=None;').str.replace('B;', '').str.split(';').str.join(
+    '","').str.replace('=',
+                       '":"').str.replace(
     "\"\",", "") + '"}'
 info_df = pd.json_normalize(info_strings.apply(eval))
 
@@ -167,24 +172,28 @@ for bedIndex, bedRow in bed.iterrows():
 
 for vcfIndex, vcfRow in vcfFull.iterrows():
 
-    if vcfRow.CHR2 == vcfRow.CHROM:
-        vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
-                                         'END': vcfRow.END, 'INDEX': vcfIndex}
+    if "CHR2" in vcfRow.keys():
+        if vcfRow.CHR2 == vcfRow.CHROM:
+            vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
+                                             'END': vcfRow.END, 'INDEX': vcfIndex}
 
-        if 'CHR_C' in vcfRow.keys() and not pd.isna(vcfRow.CHR_C):
-            if 'END_C' in vcfRow.keys() and not pd.isna(vcfRow.END_C):
-                vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR_C, 'START': vcfRow.START_C,
-                                                 'END': vcfRow.END_C, 'INDEX': vcfIndex}
-            else:
-                vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR_C, 'START': vcfRow.START_C,
-                                                 'END': vcfRow.START_C, 'INDEX': vcfIndex}
-    elif vcfRow.CHR2 == 'None':
-        vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
-                                         'END': vcfRow.POS, 'INDEX': vcfIndex}
+            if 'CHR_C' in vcfRow.keys() and not pd.isna(vcfRow.CHR_C):
+                if 'END_C' in vcfRow.keys() and not pd.isna(vcfRow.END_C):
+                    vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR_C, 'START': vcfRow.START_C,
+                                                     'END': vcfRow.END_C, 'INDEX': vcfIndex}
+                else:
+                    vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR_C, 'START': vcfRow.START_C,
+                                                     'END': vcfRow.START_C, 'INDEX': vcfIndex}
+        elif vcfRow.CHR2 == 'None':
+            vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
+                                             'END': vcfRow.POS, 'INDEX': vcfIndex}
+        else:
+            vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
+                                             'END': vcfRow.POS, 'INDEX': vcfIndex}
+            vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR2, 'START': vcfRow.END,
+                                             'END': vcfRow.END, 'INDEX': vcfIndex}
     else:
         vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHROM, 'START': vcfRow.POS,
-                                         'END': vcfRow.POS, 'INDEX': vcfIndex}
-        vcf_nodes.loc[len(vcf_nodes)] = {'CHR': vcfRow.CHR2, 'START': vcfRow.END,
                                          'END': vcfRow.END, 'INDEX': vcfIndex}
 
 hits = pd.DataFrame({'BedEntry': pd.Series(dtype='int'),
@@ -230,4 +239,4 @@ fp_vcf.to_csv(out_fp, index=False, sep="\t")
 
 if not summary == "":
     outfile = open(summary, "a")
-    outfile.write(f"{bed_in}\t{vcf_in}\t{len(TP)}\t{len(FN)}\t{FP.size}\n")
+    outfile.write(f"{bed_in}\t{vcf_in}\t{len(bed.index)}\t{len(vcf.index)}\t{len(TP)}\t{len(FN)}\t{FP.size}\n")
