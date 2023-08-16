@@ -13,4 +13,4 @@ RUN apt-get -y install default-jre
 
 WORKDIR /bin
 #RUN wget https://github.com/PapenfussLab/clove/releases/download/v0.17/clove-0.17-jar-with-dependencies.jar
-RUN wget https://github.com/PapenfussLab/clove/releases/download/v0.16/clove-0.16-jar-with-dependencies.jar
+RUN wget https://github.com/PapenfussLab/clove/releases/download/v0.15/clove-0.15-jar-with-dependencies.jar

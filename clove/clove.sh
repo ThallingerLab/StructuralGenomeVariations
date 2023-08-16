@@ -16,7 +16,7 @@ GRIDSS_VCF="${outdir/clove/gridss}/svs.vcf"
 GRIDSS_Filtered_VCF="${outdir/clove/gridss}/svs_filtered.vcf"
 DELLY_VCF="${outdir/clove/delly_0.7.9}/delly_0.7.9.vcf"
 
-CLOVE="/bin/clove-0.16-jar-with-dependencies.jar"
+CLOVE="/bin/clove-0.15-jar-with-dependencies.jar"
 
 #if [ -s "$GRIDSS_VCF" ] && [ -s "$DELLY_VCF" ]; then
 if [ -s "$GRIDSS_VCF" ]; then
@@ -28,7 +28,7 @@ if [ -s "$GRIDSS_VCF" ]; then
 
   dp_std=$(echo "scale=2 ; $dp / 5" | bc)
 
-  log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.16 java -jar $CLOVE \
+  log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.15 java -jar $CLOVE \
    -i $GRIDSS_Filtered_VCF GRIDSS \
    -b $bam \
    -o ${CLOVE_VCF}.temp \
