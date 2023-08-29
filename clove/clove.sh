@@ -29,7 +29,7 @@ if [ -s "$GRIDSS_VCF" ]; then
 
   dp_std=$(echo "scale=2 ; $dp / 5" | bc)
 
-  log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:0.15 java -jar $CLOVE \
+  log_eval $PWD "docker run --user 0:0 --name=clove -v $(pwd):$(pwd) -w $outdir vrohnie/clove:lastes java -jar $CLOVE \
    -i $GRIDSS_Filtered_VCF GRIDSS \
    -b $bam \
    -o ${CLOVE_VCF}.temp \
