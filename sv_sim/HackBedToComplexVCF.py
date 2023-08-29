@@ -34,7 +34,7 @@ if in_file is None or reference is None:
 
 import os
 
-vcf_path = in_file.replace(".bed",".vcf")
+vcf_path = in_file.replace(".bed","-complex.vcf")
 
 
 vcf_file = open(vcf_path, "w")
@@ -109,8 +109,7 @@ with open(in_file) as file:
         elif sv_def == options_dict.get("tdu"):
             vcf_file.write(f"{chr1}\t{start}\tTDU_{str(idx)}\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=DUP;SV_DEF={sv_def};EVENT=TDU_{str(idx)}\tGT\t1/1\n")
         elif sv_def == options_dict.get("itd"):
-            vcf_file.write(f"{chr1}\t{end}\tITD_{str(idx)}a\tN\t{toVcfBreakend(chr1,end,True,chr1,end,False)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\tGT\t1/1\n")
-            vcf_file.write(f"{chr1}\t{start}\tITD_{str(idx)}b\tN\t{toVcfBreakend(chr1,start,False,chr1,end+1,True)}\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\tGT\t1/1\n")
+            vcf_file.write(f"{chr1}\t{start}\tITD_{str(idx)}b\tN\t<DUP>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=ITD_{str(idx)}\tGT\t1/1\n")
         elif sv_def in (options_dict.get("tcp"), options_dict.get("txp"), options_dict.get("tci"), options_dict.get("txi"), options_dict.get("chr")):
             inserts = insertion.split(":")
             chr2 = inserts[1]
@@ -118,21 +117,9 @@ with open(in_file) as file:
             direction = inserts[3]
 
             if sv_def in {options_dict.get("tcp"), options_dict.get("tci")}:
-                if direction == "forward":
-                    vcf_file.write(f"{chr1}\t{start}\tTCP_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,True)}\t.\tPASS\tCHR2={chr2};END={pos2};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCP_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{end}\tTCP_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCP_{str(idx)}\tGT\t1/1\n")
-                else:
-                    vcf_file.write(f"{chr1}\t{start}\tTCI_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,False)}\t.\tPASS\tCHR2={chr2};END={pos2};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCI_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{end}\tTCI_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,True)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCI_{str(idx)}\tGT\t1/1\n")
+                vcf_file.write(f"{chr2}\t{pos2}\tTCP_{str(idx)}a\tN\t<DUP>\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCP_{str(idx)}\tGT\t1/1\n")
             elif sv_def in {options_dict.get("txp"), options_dict.get("txi")}:
-                if direction == "forward":
-                    vcf_file.write(f"{chr1}\t{start}\tTXP_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,True)}\t.\tPASS\tCHR2={chr2};END={pos2};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{end}\tTXP_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{start}\tTXP_{str(idx)}c\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=TXP_{str(idx)}\n")
-                else:
-                    vcf_file.write(f"{chr1}\t{start}\tTXI_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,False,chr2,pos2,False)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXI_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{end}\tTXI_{str(idx)}b\tN\t{toVcfBreakend(chr1,end,True,chr2,pos2+1,True)}\t.\tPASS\tCHR2={chr2};END={end};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TXI_{str(idx)}\tGT\t1/1\n")
-                    vcf_file.write(f"{chr1}\t{start}\tTXI_{str(idx)}c\tN\t<DEL>\t.\tPASS\tCHR2={chr1};END={end};SVLEN={str(end-start)};SVTYPE=BND;SV_DEF={sv_def};EVENT=TXI_{str(idx)}\tGT\t1/1\n")
+                vcf_file.write(f"{chr2}\t{pos2}\tTCP_{str(idx)}a\tN\t<TRA>\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=TCP_{str(idx)}\tGT\t1/1\n")
             elif sv_def == options_dict.get("chr"):
                 if direction == "forward":
                     vcf_file.write(f"{chr1}\t{start}\tCHR_{str(idx)}a\tN\t{toVcfBreakend(chr1,start,True,chr2,pos2+1,False)}\t.\tPASS\tCHR2={chr2};END={pos2+1};SVLEN=0;SVTYPE=BND;SV_DEF={sv_def};EVENT=CHR_{str(idx)}\tGT\t1/1\n")
